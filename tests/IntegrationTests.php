@@ -17,7 +17,7 @@ class IntegrationTests extends TestCase
 
         $this->schema()->create('users_i18n', function(Blueprint $table) {
             $table->integer('user_id')->unsigned();
-            $table->string('locale', 2)->unsigned();
+            $table->string('locale', 2);
             $table->text('bio');
             $table->primary(['user_id', 'locale']);
         });
@@ -29,7 +29,7 @@ class IntegrationTests extends TestCase
 
         $this->schema()->create('posts_i18n', function(Blueprint $table) {
             $table->integer('post_id')->unsigned();
-            $table->string('locale', 2)->unsigned();
+            $table->string('locale', 2);
             $table->string('title');
             $table->text('body');
             $table->primary(['post_id', 'locale']);

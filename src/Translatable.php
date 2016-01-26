@@ -92,6 +92,19 @@ trait Translatable
     /**
      * Get current locale
      *
+     * @param $locale
+     * @return string
+     */
+    public function setLocale($locale)
+    {
+        $this->locale = $locale;
+
+        return $this;
+    }
+
+    /**
+     * Get current locale
+     *
      * @return string
      */
     public function getLocale()
@@ -128,19 +141,6 @@ trait Translatable
         }
 
         return LocaleSettings::fallback();
-    }
-
-    /**
-     * Get current locale
-     *
-     * @param $locale
-     * @return string
-     */
-    public function setLocale($locale)
-    {
-        $this->locale = $locale;
-
-        return $this;
     }
 
     /**
