@@ -45,7 +45,7 @@ trait Translatable
     }
 
     /**
-     * Get an array of translatable attributes from schema
+     * Get an array of translatable attributes from schema.
      *
      * @return array
      */
@@ -55,7 +55,15 @@ trait Translatable
             return [];
         }
 
-        return $builder->getColumnListing($this->getTable());
+        if($columns = TranslatableConfig::cacheGet($this->getTable())) {
+            return $columns;
+        }
+
+        $columns = $builder->getColumnListing($this->getTable());
+
+        TranslatableConfig::cacheSet($this->getTable(), $columns);
+
+        return $columns;
     }
 
     /**
@@ -86,7 +94,7 @@ trait Translatable
      */
     public function getLocaleKey()
     {
-        return LocaleSettings::dbKey();
+        return TranslatableConfig::dbKey();
     }
 
     /**
@@ -113,7 +121,7 @@ trait Translatable
             return $this->locale;
         }
 
-        return LocaleSettings::current();
+        return TranslatableConfig::current();
     }
 
     /**
@@ -140,7 +148,7 @@ trait Translatable
             return $this->fallbackLocale;
         }
 
-        return LocaleSettings::fallback();
+        return TranslatableConfig::fallback();
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Database\Capsule\Manager as Capsule;
-use Laraplus\Data\LocaleSettings;
+use Laraplus\Data\TranslatableConfig;
 
 abstract class TestCase extends PHPUnit_Framework_TestCase
 {
@@ -19,9 +19,9 @@ abstract class TestCase extends PHPUnit_Framework_TestCase
 
         $capsule->bootEloquent();
 
-        LocaleSettings::setAvailable(['en','de']);
-        LocaleSettings::setCurrent('en');
-        LocaleSettings::setFallback('en');
+        TranslatableConfig::setAvailable(['en','de']);
+        TranslatableConfig::setCurrent('en');
+        TranslatableConfig::setFallback('en');
 
         require_once __DIR__.'/stubs/Post.php';
     }
