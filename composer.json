@@ -1,0 +1,29 @@
+{
+  "name": "laraplus/translatable",
+  "description": "Translatable eloquent models.",
+  "keywords": ["translatable", "eloquent", "laravel", "model", "translate", "i18n"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Anže Časar",
+      "email": "anze.casar@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.5.0",
+    "illuminate/database": "~5.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "5.1.*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Laraplus\\Data\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "classmap": [
+      "tests/TestCase.php"
+    ]
+  }
+}

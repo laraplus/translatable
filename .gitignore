@@ -1,0 +1,5 @@
+/vendor
+/tests/stubs/database.sqlite
+composer.lock
+.idea
+
