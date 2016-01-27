@@ -19,6 +19,88 @@ trait Translatable
     }
 
     /**
+     * Save a new model and return the instance.
+     *
+     * @param array $attributes
+     * @param array|string|null $translations
+     * @param string|null $locale
+     * @return static
+     */
+    public static function create(array $attributes = [], $translations = null, $locale = null)
+    {
+        $model = new static($attributes);
+
+        if(is_string($translations)) {
+            $locale = $translations;
+        }
+
+        if($locale) {
+            $model->setLocale($locale);
+        }
+
+        $model->save();
+
+        if(is_array($translations)) {
+            $model->saveTranslations($translations);
+        }
+
+        return $model;
+    }
+
+    /**
+     * Save a new model and return the instance. Allow mass-assignment.
+     *
+     * @param array $attributes
+     * @param array|string|null $translations
+     * @param string|null $locale
+     * @return static
+     */
+    public static function forceCreate(array $attributes, $translations = null, $locale = null)
+    {
+        // Since some versions of PHP have a bug that prevents it from properly
+        // binding the late static context in a closure, we will first store
+        // the model in a variable, which we will then use in the closure.
+        $model = new static;
+
+        return static::unguarded(function () use ($model, $attributes, $translations, $locale) {
+            return $model->create($attributes, $translations, $locale);
+        });
+    }
+
+    /**
+     * @param array $translations
+     * @return bool
+     */
+    public function saveTranslations(array $translations)
+    {
+        $backup = $this->getLocale();
+        $success = true;
+
+        foreach($translations as $locale => $attributes) {
+            $this->setLocale($locale);
+            $this->fill($attributes);
+
+            $success &= $this->save();
+        }
+
+        $this->setLocale($backup);
+
+        return $success;
+    }
+
+    /**
+     * @param array $attributes
+     * @param $locale
+     * @return bool
+     */
+    public function saveTranslation(array $attributes, $locale)
+    {
+        return $this->saveTranslations([
+            $locale => $attributes
+        ]);
+    }
+
+    /**
      * @param array $attributes
      * @return $this
      * @throws MassAssignmentException
