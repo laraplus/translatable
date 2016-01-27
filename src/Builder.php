@@ -16,8 +16,7 @@ class Builder extends EloquentBuilder
 
         list($values, $i18nValues) = $this->filterValues($values);
 
-
-        if($this->query->update($values)) {
+        if(!$values || $this->toBase()->update($values)) {
             return $this->updateI18n($i18nValues);
         }
 
@@ -125,7 +124,7 @@ class Builder extends EloquentBuilder
      *
      * @return \Illuminate\Database\Query\Builder
      */
-    public function i18nQuery()
+    protected function i18nQuery()
     {
         $query = $this->getModel()->newQueryWithoutScopes()->getQuery();
 

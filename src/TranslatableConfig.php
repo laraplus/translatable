@@ -18,6 +18,8 @@ class TranslatableConfig
 
     protected static $cacheSetter = null;
 
+    protected static $onlyTranslated = false;
+
     public static function setCurrent($current)
     {
         static::$current = $current;
@@ -31,6 +33,11 @@ class TranslatableConfig
     public static function setAvailable(array $available)
     {
         static::$available = $available;
+    }
+
+    public static function setOnlyTranslated($onlyTranslated)
+    {
+        static::$onlyTranslated = $onlyTranslated;
     }
 
     public static function setDbSuffix($suffix)
@@ -78,6 +85,11 @@ class TranslatableConfig
         }
 
         return static::$current;
+    }
+
+    public static function onlyTranslated()
+    {
+        return static::$onlyTranslated;
     }
 
     public static function dbSuffix()

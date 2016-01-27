@@ -2,11 +2,11 @@
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
-use Illuminate\Database\Query\Expression;
-use Illuminate\Database\Query\Grammars\SqlServerGrammar;
 use Illuminate\Database\Query\JoinClause;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Grammars\Grammar;
+use Illuminate\Database\Query\Grammars\SqlServerGrammar;
 
 class TranslatableScope implements Scope
 {
@@ -50,14 +50,14 @@ class TranslatableScope implements Scope
         $clause = $this->getJoinClause($model, $this->locale, $this->i18nTable);
         $builder->$joinType($this->i18nTable, $clause);
 
-        if($this->shouldFallback()) {
+        if($model->shouldFallback()) {
             $clause = $this->getJoinClause($model, $this->fallback, $this->i18nTable . '_fallback');
             $builder->$joinType("{$this->i18nTable} as {$this->i18nTable}_fallback", $clause);
         }
     }
 
     /**
-     * @param Model $model
+     * @param \Illuminate\Database\Eloquent\Model $model
      * @return callable
      */
     private function getJoinClause(Model $model, $locale, $alias)
@@ -73,15 +73,7 @@ class TranslatableScope implements Scope
     }
 
     /**
-     * @return bool
-     */
-    protected function shouldFallback()
-    {
-        return $this->fallback && $this->locale != $this->fallback && $this->joinType != 'join';
-    }
-
-    /**
-     * @param  \Illuminate\Database\Eloquent\Builder $builder
+     * @param \Illuminate\Database\Eloquent\Builder $builder
      * @param \Illuminate\Database\Eloquent\Model $model
      */
     protected function createSelect(Builder $builder, Model $model)
@@ -90,29 +82,28 @@ class TranslatableScope implements Scope
             return;
         }
 
-        $select = $this->formatColumns($model, $builder->getQuery()->getGrammar());
+        $select = $this->formatColumns($builder, $model);
 
         $builder->select(array_merge([$this->table . '.*'], $select));
     }
 
     /**
-     * @param Model $model
-     * @param Grammar $grammar
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @param \Illuminate\Database\Eloquent\Model $model
      * @return array
      */
-    protected function formatColumns(Model $model, Grammar $grammar)
+    protected function formatColumns(Builder $builder, Model $model)
     {
-        $map = function ($field) use ($grammar) {
-            if (!$this->shouldFallback()) {
+        $map = function ($field) use ($builder, $model) {
+            if (!$model->shouldFallback()) {
                 return "{$this->i18nTable}.{$field}";
             }
 
-            $primary = $grammar->wrap("{$this->i18nTable}.{$field}");
-            $fallback = $grammar->wrap("{$this->i18nTable}_fallback.{$field}");
-            $ifNull = $this->getIfNull($grammar);
-            $alias = $grammar->wrap($field);
+            $primary = "{$this->i18nTable}.{$field}";
+            $fallback = "{$this->i18nTable}_fallback.{$field}";
+            $alias = $field;
 
-            return new Expression("{$ifNull}({$primary}, {$fallback}) as {$alias}");
+            return new Expression($builder->getQuery()->compileIfNull($primary, $fallback, $alias));
         };
 
         return array_map($map, $model->translatableAttributes());
@@ -135,7 +126,19 @@ class TranslatableScope implements Scope
     public function extend(Builder $builder)
     {
         $builder->macro('onlyTranslated', function (Builder $builder) {
-            $this->joinType = 'join';
+            $this->getModel()->setOnlyTranslated(true);
+
+            return $builder;
+        });
+
+        $builder->macro('withUntranslated', function (Builder $builder) {
+            $this->getModel()->setOnlyTranslated(false);
+
+            return $builder;
+        });
+
+        $builder->macro('withFallback', function (Builder $builder, $locale) {
+            $builder->getModel()->setFallbackLocale($locale);
 
             return $builder;
         });
@@ -146,7 +149,7 @@ class TranslatableScope implements Scope
             return $builder;
         });
 
-        $builder->macro('inLocale', function (Builder $builder, $locale) {
+        $builder->macro('translate', function (Builder $builder, $locale) {
             $builder->getModel()->setLocale($locale);
 
             return $builder;

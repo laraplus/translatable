@@ -6,6 +6,8 @@ trait Translatable
 
     protected $fallbackLocale = null;
 
+    protected $onlyTranslated = null;
+
     protected static $i18nAttributes = [];
 
     /**
@@ -77,17 +79,6 @@ trait Translatable
     }
 
     /**
-     * Create a new Eloquent query builder for the model.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder|static
-     */
-    public function newEloquentBuilder($query)
-    {
-        return new Builder($query);
-    }
-
-    /**
      * Get name of the locale key.
      *
      * @return string
@@ -152,12 +143,90 @@ trait Translatable
     }
 
     /**
+     * Set if model should select only translated rows
+     *
+     * @param bool $onlyTranslated
+     * @return $this
+     */
+    public function setOnlyTranslated($onlyTranslated)
+    {
+        $this->onlyTranslated = $onlyTranslated;
+
+        return $this;
+    }
+
+    /**
+     * Get current locale
+     *
+     * @return string
+     */
+    public function getOnlyTranslated()
+    {
+        if(!is_null($this->onlyTranslated)) {
+            return $this->onlyTranslated;
+        }
+
+        return TranslatableConfig::onlyTranslated();
+    }
+
+    /**
      * Get the i18n table associated with the model.
      *
      * @return string
      */
     public function getI18nTable()
     {
-        return $this->getTable() . '_i18n';
+        return $this->getTable() . $this->getTranslationTableSuffix();
+    }
+
+    /**
+     * Get the i18n table suffix.
+     *
+     * @return string
+     */
+    public function getTranslationTableSuffix()
+    {
+        return TranslatableConfig::dbSuffix();
+    }
+
+    /**
+     * Should fallback to a primary translation.
+     *
+     * @return bool
+     */
+    public function shouldFallback()
+    {
+        $onlyTranslated = $this->getOnlyTranslated();
+        $fallback = $this->getFallbackLocale();
+        $locale = $this->getLocale();
+
+        return $fallback && !$onlyTranslated && $locale != $fallback;
+    }
+
+    /**
+     * Create a new Eloquent query builder for the model.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    public function newEloquentBuilder($query)
+    {
+        return new Builder($query);
+    }
+
+    /**
+     * Get a new query builder instance for the connection.
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    protected function newBaseQueryBuilder()
+    {
+        $conn = $this->getConnection();
+
+        $grammar = $conn->getQueryGrammar();
+
+        $builder = new QueryBuilder($conn, $grammar, $conn->getPostProcessor());
+
+        return $builder->setModel($this);
     }
 }

@@ -31,7 +31,7 @@ class IntegrationTests extends TestCase
             $table->integer('post_id')->unsigned();
             $table->string('locale', 2);
             $table->string('title');
-            $table->text('body');
+            $table->text('body')->nullable();
             $table->primary(['post_id', 'locale']);
         });
     }
@@ -73,7 +73,7 @@ class IntegrationTests extends TestCase
         $this->assertEquals('John Doe', $user->name);
         $this->assertEquals('Lorem ipsum', $user->bio);
 
-        $user = User::inLocale('de')->first();
+        $user = User::translate('de')->first();
         $this->assertEquals('John Doe', $user->name);
         $this->assertEquals('DE Lorem ipsum', $user->bio);
     }
@@ -85,7 +85,7 @@ class IntegrationTests extends TestCase
             'bio' => 'Lorem ipsum'
         ]);
 
-        $user = User::inLocale('de')->first();
+        $user = User::translate('de')->first();
         $this->assertEquals('John Doe', $user->name);
         $this->assertEquals('Lorem ipsum', $user->bio);
     }
@@ -97,7 +97,7 @@ class IntegrationTests extends TestCase
             'bio' => 'Lorem ipsum'
         ]);
 
-        $user = User::inLocale('de')->withoutFallback()->first();
+        $user = User::translate('de')->withoutFallback()->first();
         $this->assertEquals('John Doe', $user->name);
         $this->assertNull($user->bio);
     }
@@ -126,6 +126,14 @@ class IntegrationTests extends TestCase
         $user = $user->first();
         $this->assertEquals('John Doe', $user->name);
         $this->assertEquals('Lorem ipsum', $user->bio);
+    }
+
+    public function testWhereTranslated()
+    {
+        Post::forceCreate(['title' => 'Title 1']);
+        Post::forceCreate(['title' => 'Title 2']);
+
+        $this->assertEquals(1, Post::whereTranslated('title', 'Title 1')->count());
     }
 
     /**
