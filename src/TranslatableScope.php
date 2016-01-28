@@ -33,9 +33,9 @@ class TranslatableScope implements Scope
         $this->locale = $model->getLocale();
         $this->i18nTable = $model->getI18nTable();
         $this->fallback = $model->getFallbackLocale();
-        $this->joinType = 'leftJoin';
 
         $this->createJoin($builder, $model);
+        $this->createWhere($builder, $model);
         $this->createSelect($builder, $model);
     }
 
@@ -45,7 +45,7 @@ class TranslatableScope implements Scope
      */
     protected function createJoin(Builder $builder, Model $model)
     {
-        $joinType = $this->joinType;
+        $joinType = $this->getJoinType($model);
 
         $clause = $this->getJoinClause($model, $this->locale, $this->i18nTable);
         $builder->$joinType($this->i18nTable, $clause);
@@ -58,9 +58,22 @@ class TranslatableScope implements Scope
 
     /**
      * @param \Illuminate\Database\Eloquent\Model $model
+     * @return string
+     */
+    protected function getJoinType(Model $model)
+    {
+        $innerJoin = !$model->shouldFallback() && $model->getOnlyTranslated();
+
+        return $innerJoin ? 'join' : 'leftJoin';
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param string $locale
+     * @param string $alias
      * @return callable
      */
-    private function getJoinClause(Model $model, $locale, $alias)
+    protected function getJoinClause(Model $model, $locale, $alias)
     {
         return function (JoinClause $join) use ($model, $locale, $alias) {
             $primary = $model->getKeyName();
@@ -70,6 +83,23 @@ class TranslatableScope implements Scope
             $join->on($alias . '.' . $foreign, '=', $this->table . '.' . $primary)
                 ->where($alias . '.' . $langKey, '=', $locale);
         };
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @param \Illuminate\Database\Eloquent\Model $model
+     */
+    protected function createWhere(Builder $builder, Model $model)
+    {
+        if($model->getOnlyTranslated() && $model->shouldFallback()) {
+            $key = $model->getForeignKey();
+            $primary = "{$this->i18nTable}.{$key}";
+            $fallback = "{$this->i18nTable}_fallback.{$key}";
+
+            $ifNull = $builder->getQuery()->compileIfNull($primary, $fallback);
+
+            $builder->whereRaw("$ifNull is not null");
+        }
     }
 
     /**
@@ -125,26 +155,34 @@ class TranslatableScope implements Scope
      */
     public function extend(Builder $builder)
     {
-        $builder->macro('onlyTranslated', function (Builder $builder) {
-            $this->getModel()->setOnlyTranslated(true);
+        $builder->macro('onlyTranslated', function (Builder $builder, $locale = null) {
+            $builder->getModel()->setOnlyTranslated(true);
+
+            if($locale) {
+                $builder->getModel()->setLocale($locale);
+            }
 
             return $builder;
         });
 
         $builder->macro('withUntranslated', function (Builder $builder) {
-            $this->getModel()->setOnlyTranslated(false);
+            $builder->getModel()->setOnlyTranslated(false);
 
             return $builder;
         });
 
-        $builder->macro('withFallback', function (Builder $builder, $locale) {
-            $builder->getModel()->setFallbackLocale($locale);
+        $builder->macro('withFallback', function (Builder $builder, $fallbackLocale = null) {
+            $builder->getModel()->setWithFallback(true);
+
+            if($fallbackLocale) {
+                $builder->getModel()->setFallbackLocale($fallbackLocale);
+            }
 
             return $builder;
         });
 
         $builder->macro('withoutFallback', function (Builder $builder) {
-            $builder->getModel()->setFallbackLocale(false);
+            $builder->getModel()->setWithFallback(false);
 
             return $builder;
         });

@@ -2,13 +2,13 @@
 
 trait Translatable
 {
-    protected $locale = null;
+    protected $overrideLocale = null;
 
-    protected $fallbackLocale = null;
+    protected $overrideFallbackLocale = null;
 
-    protected $onlyTranslated = null;
+    protected $overrideOnlyTranslated = null;
 
-    protected $withFallback = null;
+    protected $overrideWithFallback = null;
 
     /**
      * Translated attributes cache
@@ -232,7 +232,7 @@ trait Translatable
      */
     public function setLocale($locale)
     {
-        $this->locale = $locale;
+        $this->overrideLocale = $locale;
 
         return $this;
     }
@@ -244,7 +244,11 @@ trait Translatable
      */
     public function getLocale()
     {
-        if($this->locale) {
+        if($this->overrideLocale) {
+            return $this->overrideLocale;
+        }
+
+        if(property_exists($this, 'locale')) {
             return $this->locale;
         }
 
@@ -259,7 +263,7 @@ trait Translatable
      */
     public function setFallbackLocale($locale)
     {
-        $this->fallbackLocale = $locale;
+        $this->overrideFallbackLocale = $locale;
 
         return $this;
     }
@@ -271,7 +275,11 @@ trait Translatable
      */
     public function getFallbackLocale()
     {
-        if(!is_null($this->fallbackLocale)) {
+        if($this->overrideFallbackLocale) {
+            return $this->overrideFallbackLocale;
+        }
+
+        if(property_exists($this, 'fallbackLocale')) {
             return $this->fallbackLocale;
         }
 
@@ -286,7 +294,7 @@ trait Translatable
      */
     public function setOnlyTranslated($onlyTranslated)
     {
-        $this->onlyTranslated = $onlyTranslated;
+        $this->overrideOnlyTranslated = $onlyTranslated;
 
         return $this;
     }
@@ -294,15 +302,50 @@ trait Translatable
     /**
      * Get current locale
      *
-     * @return string
+     * @return bool
      */
     public function getOnlyTranslated()
     {
-        if(!is_null($this->onlyTranslated)) {
+        if(!is_null($this->overrideOnlyTranslated)) {
+            return $this->overrideOnlyTranslated;
+        }
+
+        if(property_exists($this, 'onlyTranslated')) {
             return $this->onlyTranslated;
         }
 
         return TranslatableConfig::onlyTranslated();
+    }
+
+    /**
+     * Set if model should select only translated rows
+     *
+     * @param bool $withFallback
+     * @return $this
+     */
+    public function setWithFallback($withFallback)
+    {
+        $this->overrideWithFallback = $withFallback;
+
+        return $this;
+    }
+
+    /**
+     * Get current locale
+     *
+     * @return bool
+     */
+    public function getWithFallback()
+    {
+        if(!is_null($this->overrideWithFallback)) {
+            return $this->overrideWithFallback;
+        }
+
+        if(property_exists($this, 'withFallback')) {
+            return $this->withFallback;
+        }
+
+        return TranslatableConfig::withFallback();
     }
 
     /**
@@ -332,11 +375,11 @@ trait Translatable
      */
     public function shouldFallback()
     {
-        $onlyTranslated = $this->getOnlyTranslated();
-        $fallback = $this->getFallbackLocale();
-        $locale = $this->getLocale();
+        if(!$this->getWithFallback() || !$this->getFallbackLocale()) {
+            return false;
+        }
 
-        return $fallback && !$onlyTranslated && $locale != $fallback;
+        return $this->getLocale() != $this->getFallbackLocale();
     }
 
     /**

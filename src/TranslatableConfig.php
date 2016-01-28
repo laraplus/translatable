@@ -19,7 +19,7 @@ class TranslatableConfig
         ],
         'defaults' => [
             'only_translated' => false,
-            'enable_fallback' => true,
+            'with_fallback' => true,
         ]
     ];
 
@@ -74,7 +74,7 @@ class TranslatableConfig
 
     public static function withFallback()
     {
-        return static::$config['defaults']['enable_fallback'];
+        return static::$config['defaults']['with_fallback'];
     }
 
     public static function dbSuffix()

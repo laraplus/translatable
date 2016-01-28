@@ -9,7 +9,7 @@ return [
 
     'defaults' => [
         'only_translated' => false,
-        'enable_fallback' => true,
+        'with_fallback' => true,
     ],
 
 ];

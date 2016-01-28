@@ -168,6 +168,21 @@ class IntegrationTests extends TestCase
         $this->assertEquals('Title 1', $queryWithoutFallback->first()->title);
     }
 
+    public function testMacros()
+    {
+        $post = Post::forceCreateInLocale('de', ['title'  => 'Title DE']);
+        $post->forceSaveTranslation('en', ['title'  => 'Title EN']);
+        Post::forceCreateInLocale('en', ['title'  => 'Title 2 EN']);
+        Post::forceCreateInLocale('de', ['title'  => 'Title 2 DE']);
+        Post::forceCreate(['id'  => 10]); // no translations
+
+        $this->assertEquals(4, Post::translate('en')->withFallback('de')->withUntranslated()->count());
+        $this->assertEquals(3, Post::translate('en')->withFallback('de')->onlyTranslated()->count());
+        $this->assertEquals(2, Post::onlyTranslated('en')->withoutFallback()->count());
+        $this->assertEquals(3, Post::onlyTranslated('en')->withFallback('de')->count());
+        $this->assertEquals(2, Post::onlyTranslated('en')->withFallback('de')->where('title', 'LIKE', '%EN')->count());
+    }
+
     /**
      * Get a database connection instance.
      *
