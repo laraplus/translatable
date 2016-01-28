@@ -60,14 +60,14 @@ class IntegrationTests extends TestCase
 
     public function testModelCanBeStoredAndRetrievedInDifferentLocales()
     {
-        $user = new User;
-        $user->name = 'John Doe';
-        $user->bio = 'Lorem ipsum';
-        $user->save();
+        $user = User::forceCreate([
+            'name' => 'John Doe',
+            'bio'  => 'Lorem ipsum'
+        ]);
 
-        $user->setLocale('de');
-        $user->bio = 'DE Lorem ipsum';
-        $user->save();
+        $user->forceSaveTranslation('de', [
+            'bio' => 'DE Lorem ipsum'
+        ]);
 
         $user = User::first();
         $this->assertEquals('John Doe', $user->name);
@@ -133,7 +133,39 @@ class IntegrationTests extends TestCase
         Post::forceCreate(['title' => 'Title 1']);
         Post::forceCreate(['title' => 'Title 2']);
 
-        $this->assertEquals(1, Post::whereTranslated('title', 'Title 1')->count());
+        $this->assertEquals(1, Post::where('title', 'Title 1')->count());
+    }
+
+    public function testWhereTranslatedWithFallback()
+    {
+        Post::forceCreateInLocale('de', ['title'  => 'Title']);
+        Post::forceCreateInLocale('en', ['title'  => 'Title']);
+
+        $queryWithFallback = Post::translate('de')->where('title', 'Title');
+        $queryWithoutFallback = Post::withoutFallback()->translate('de')->where('title', 'Title');
+
+        $this->assertEquals(2, $queryWithFallback->count());
+        $this->assertEquals(1, $queryWithoutFallback->count());
+    }
+
+    public function testOrderByTranslated()
+    {
+        Post::forceCreate(['title' => 'Title 1']);
+        Post::forceCreate(['title' => 'Title 2']);
+
+        $this->assertEquals('Title 2', Post::orderByTranslated('title', 'desc')->first()->title);
+    }
+
+    public function testOrderByTranslatedWithFallback()
+    {
+        Post::forceCreateInLocale('de', ['title'  => 'Title 1']);
+        Post::forceCreateInLocale('en', ['title'  => 'Title 2']);
+
+        $queryWithFallback = Post::translate('de')->orderBy('title', 'desc');
+        $queryWithoutFallback = Post::withoutFallback()->translate('de')->orderBy('title', 'desc');
+
+        $this->assertEquals('Title 2', $queryWithFallback->first()->title);
+        $this->assertEquals('Title 1', $queryWithoutFallback->first()->title);
     }
 
     /**

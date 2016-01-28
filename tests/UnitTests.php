@@ -64,32 +64,32 @@ class UnitTests extends TestCase
 
     public function testBasicWhereTranslated()
     {
-        $queryAnd = Post::whereTranslated('slug', 'my-slug');
-        $queryOr = Post::where('is_active', 1)->orWhereTranslated('slug', 'my-slug');
+        $queryAnd = Post::where('title', 'my title');
+        $queryOr = Post::where('is_active', 1)->orWhere('title', 'my title');
 
         $expected =
             'select "posts".*, "posts_i18n"."title", "posts_i18n"."body" from "posts" '.
             'left join "posts_i18n" on "posts_i18n"."post_id" = "posts"."id" and "posts_i18n"."locale" = ? ';
 
-        $this->assertEquals($queryAnd->toSql(), $expected . 'where "posts_i18n"."slug" = ?');
-        $this->assertEquals(['en', 'my-slug'], $queryAnd->getBindings());
+        $this->assertEquals($queryAnd->toSql(), $expected . 'where "posts_i18n"."title" = ?');
+        $this->assertEquals(['en', 'my title'], $queryAnd->getBindings());
 
-        $this->assertEquals($queryOr->toSql(), $expected . 'where "is_active" = ? or "posts_i18n"."slug" = ?');
-        $this->assertEquals(['en', 1, 'my-slug'], $queryOr->getBindings());
+        $this->assertEquals($queryOr->toSql(), $expected . 'where "is_active" = ? or "posts_i18n"."title" = ?');
+        $this->assertEquals(['en', 1, 'my title'], $queryOr->getBindings());
     }
 
     public function testWhereTranslatedWithFallback()
     {
-        $queryAnd = Post::translate('de')->whereTranslated('slug', 'my-slug');
-        $queryOr = Post::translate('de')->where('is_active', 1)->orWhereTranslated('slug', 'my-slug');
+        $queryAnd = Post::translate('de')->where('title', 'my title');
+        $queryOr = Post::translate('de')->where('is_active', 1)->orWhere('title', 'my title');
 
         $expected = $this->getJoinWithFallbackSql();
 
-        $this->assertEquals($queryAnd->toSql(), $expected . ' where ifnull("posts_i18n"."slug", "posts_i18n_fallback"."slug") = ?');
-        $this->assertEquals(['de', 'en', 'my-slug'], $queryAnd->getBindings());
+        $this->assertEquals($queryAnd->toSql(), $expected . ' where ifnull("posts_i18n"."title", "posts_i18n_fallback"."title") = ?');
+        $this->assertEquals(['de', 'en', 'my title'], $queryAnd->getBindings());
 
-        $this->assertEquals($queryOr->toSql(), $expected . ' where "is_active" = ? or ifnull("posts_i18n"."slug", "posts_i18n_fallback"."slug") = ?');
-        $this->assertEquals(['de', 'en', 1, 'my-slug'], $queryOr->getBindings());
+        $this->assertEquals($queryOr->toSql(), $expected . ' where "is_active" = ? or ifnull("posts_i18n"."title", "posts_i18n_fallback"."title") = ?');
+        $this->assertEquals(['de', 'en', 1, 'my title'], $queryOr->getBindings());
     }
 
     protected function getJoinWithFallbackSql()

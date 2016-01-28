@@ -19,9 +19,13 @@ abstract class TestCase extends PHPUnit_Framework_TestCase
 
         $capsule->bootEloquent();
 
-        TranslatableConfig::setAvailable(['en','de']);
-        TranslatableConfig::setCurrent('en');
-        TranslatableConfig::setFallback('en');
+        TranslatableConfig::currentLocaleGetter(function(){
+            return 'en';
+        });
+
+        TranslatableConfig::fallbackLocaleGetter(function(){
+            return 'en';
+        });
 
         require_once __DIR__.'/stubs/Post.php';
     }

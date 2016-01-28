@@ -24,9 +24,39 @@ class QueryBuilder extends Builder
     }
 
     /**
+     * Add a where clause to the query.
+     *
+     * @param  string|\Closure  $column
+     * @param  string  $operator
+     * @param  mixed   $value
+     * @param  string  $boolean
+     * @return $this
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function where($column, $operator = null, $value = null, $boolean = 'and')
+    {
+        // If the column is an array, we will assume it is an array of key-value pairs
+        // and can add them each as a where clause. We will maintain the boolean we
+        // received when the method was called and pass it into the nested where.
+        if (is_array($column)) {
+            return $this->addArrayOfWheres($column, $boolean);
+        }
+
+        // Then we need to check if we are dealing with a translated column and defer
+        // to the "whereTranslated" clause in that case. That way the user doesn't
+        // need to worry about translated columns and let us handle the details.
+        if(in_array($column, $this->model->translatableAttributes())) {
+            return $this->whereTranslated($column, $operator, $value, $boolean);
+        }
+
+        return parent::where($column, $operator, $value, $boolean);
+    }
+
+    /**
      * Add a translation where clause to the query.
      *
-     * @param  string|array|\Closure  $column
+     * @param  string|\Closure  $column
      * @param  string  $operator
      * @param  mixed   $value
      * @param  string  $boolean
@@ -36,13 +66,6 @@ class QueryBuilder extends Builder
      */
     public function whereTranslated($column, $operator = null, $value = null, $boolean = 'and')
     {
-        // If the column is an array, we will assume it is an array of key-value pairs
-        // and can add them each as a where clause. We will maintain the boolean we
-        // received when the method was called and pass it into the nested where.
-        if (is_array($column)) {
-            return $this->addArrayOfWheres($column, $boolean);
-        }
-
         // Here we will make some assumptions about the operator. If only 2 values are
         // passed to the method, we will assume that the operator is an equals sign
         // and keep going. Otherwise, we'll require the operator to be passed in.
@@ -62,6 +85,9 @@ class QueryBuilder extends Builder
         $fallbackColumn = $this->qualifyTranslationColumn($column, true);
         $column = $this->qualifyTranslationColumn($column);
 
+        // Finally we'll check whether we need to consider fallback translations. In
+        // that case we need to create a complex "ifnull" clause, otherwise we can
+        // just prepend the translation alias and add the where clause normally.
         if (!$this->model->shouldFallback() || $column instanceof Closure) {
             return $this->where($column, $operator, $value, $boolean);
         }
@@ -84,6 +110,43 @@ class QueryBuilder extends Builder
     public function orWhereTranslated($column, $operator = null, $value = null)
     {
         return $this->whereTranslated($column, $operator, $value, 'or');
+    }
+
+    /**
+     * Add an "order by" clause by translated column to the query.
+     *
+     * @param  string  $column
+     * @param  string  $direction
+     * @return $this
+     */
+    public function orderBy($column, $direction = 'asc')
+    {
+        if(in_array($column, $this->model->translatableAttributes())) {
+            return $this->orderByTranslated($column, $direction);
+        }
+
+        return parent::orderBy($column, $direction);
+    }
+
+    /**
+     * Add an "order by" clause by translated column to the query.
+     *
+     * @param  string  $column
+     * @param  string  $direction
+     * @return $this
+     */
+    public function orderByTranslated($column, $direction = 'asc')
+    {
+        $fallbackColumn = $this->qualifyTranslationColumn($column, true);
+        $column = $this->qualifyTranslationColumn($column);
+
+        if (!$this->model->shouldFallback()) {
+            return $this->orderBy($column, $direction);
+        }
+
+        $condition = $this->compileIfNull($column, $fallbackColumn);
+
+        return $this->orderByRaw("{$condition} {$direction}");
     }
 
     /**

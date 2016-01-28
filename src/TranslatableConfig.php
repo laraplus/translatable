@@ -4,132 +4,107 @@ use Exception;
 
 class TranslatableConfig
 {
-    protected static $current = 'en';
+    protected static $config = [
+        'locale' => [
+            'current_getter' => null,
+            'fallback_getter' => null,
+        ],
+        'cache' => [
+            'getter' => null,
+            'setter' => null
+        ],
+        'db_settings' => [
+            'table_suffix' => '_i18n',
+            'locale_field' => 'locale'
+        ],
+        'defaults' => [
+            'only_translated' => false,
+            'enable_fallback' => true,
+        ]
+    ];
 
-    protected static $fallback = 'en';
-
-    protected static $available = ['en'];
-
-    protected static $dbSuffix = '_i18n';
-
-    protected static $dbKey = 'locale';
-
-    protected static $cacheGetter = null;
-
-    protected static $cacheSetter = null;
-
-    protected static $onlyTranslated = false;
-
-    public static function setCurrent($current)
+    public static function currentLocaleGetter(callable $current)
     {
-        static::$current = $current;
+        static::$config['locale']['current_getter'] = $current;
     }
 
-    public static function setFallback($fallback)
+    public static function fallbackLocaleGetter(callable $fallback)
     {
-        static::$fallback = $fallback;
-    }
-
-    public static function setAvailable(array $available)
-    {
-        static::$available = $available;
-    }
-
-    public static function setOnlyTranslated($onlyTranslated)
-    {
-        static::$onlyTranslated = $onlyTranslated;
-    }
-
-    public static function setDbSuffix($suffix)
-    {
-        static::$dbSuffix = $suffix;
-    }
-
-    public static function setDbKey($key)
-    {
-        static::$dbKey = $key;
+        static::$config['locale']['fallback_getter'] = $fallback;
     }
 
     public static function cacheGetter(callable $getter)
     {
-        static::$cacheGetter = $getter;
+        static::$config['cache']['getter'] = $getter;
     }
 
     public static function cacheSetter(callable $setter)
     {
-        static::$cachesetter = $setter;
+        static::$config['cache']['setter'] = $setter;
     }
 
-    public static function current()
+    public static function setDbSettings(array $settings)
     {
-        if(static::runsInLaravel()) {
-            return app()->getLocale();
-        }
-
-        return static::$current;
+        static::$config['db_settings'] = array_merge(static::$config['db_settings'], $settings);
     }
 
-    public static function fallback()
+    public static function setDefaults(array $defaults)
     {
-        if(static::runsInLaravel()) {
-            return app()->getFallbackLocale();
-        }
-
-        return static::$current;
+        static::$config['defaults'] = array_merge(static::$config['defaults'], $defaults);
     }
 
-    public static function available()
+    public static function currentLocale()
     {
-        if(static::runsInLaravel()) {
-            return config('app.locales', [static::current()]);
-        }
+        static::checkIfSet('locale', 'current_getter');
 
-        return static::$current;
+        return call_user_func(static::$config['locale']['current_getter']);
+    }
+
+    public static function fallbackLocale()
+    {
+        static::checkIfSet('locale', 'fallback_getter');
+
+        return call_user_func(static::$config['locale']['fallback_getter']);
     }
 
     public static function onlyTranslated()
     {
-        return static::$onlyTranslated;
+        return static::$config['defaults']['only_translated'];
+    }
+
+    public static function withFallback()
+    {
+        return static::$config['defaults']['enable_fallback'];
     }
 
     public static function dbSuffix()
     {
-        return static::$dbSuffix;
+        return static::$config['db_settings']['table_suffix'];
     }
 
     public static function dbKey()
     {
-        return static::$dbKey;
+        return static::$config['db_settings']['locale_field'];
     }
 
     public static function cacheSet($table, array $fields)
     {
-        if(static::runsInLaravel()) {
-            return cache()->set('translatable' . $table, $fields);
-        }
+        static::checkIfSet('cache', 'setter');
 
-        if(!static::$cacheSetter) {
-            throw new Exception('Cache not available. Declare a $translatable property on your model manually.');
-        }
-
-        return call_user_func_array(static::$cacheSetter, [$table, $fields]);
+        return call_user_func_array(static::$config['cache']['setter'], [$table, $fields]);
     }
 
     public static function cacheGet($table)
     {
-        if(static::runsInLaravel()) {
-            return cache()->get('translatable' . $table);
-        }
+        static::checkIfSet('cache', 'getter');
 
-        if(!static::$cacheGetter) {
-            throw new Exception('Cache not available. Declare a $translatable property on your model manually.');
-        }
-
-        return call_user_func_array(static::$cacheSetter, [$table]);
+        return call_user_func_array(static::$config['cache']['getter'], [$table]);
     }
 
-    protected static function runsInLaravel()
+    protected function checkIfSet($key1, $key2)
     {
-        return class_exists('\Illuminate\Foundation\Application');
+        if(empty(static::$config[$key1][$key2])) {
+            throw new Exception("Translatable is not configured correctly. Config for [$key1.$key2] is missing.");
+        }
     }
 }

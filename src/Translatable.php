@@ -8,6 +8,13 @@ trait Translatable
 
     protected $onlyTranslated = null;
 
+    protected $withFallback = null;
+
+    /**
+     * Translated attributes cache
+     *
+     * @var array
+     */
     protected static $i18nAttributes = [];
 
     /**
@@ -22,23 +29,35 @@ trait Translatable
      * Save a new model and return the instance.
      *
      * @param array $attributes
-     * @param array|string|null $translations
-     * @param string|null $locale
+     * @param array|string $translations
      * @return static
      */
-    public static function create(array $attributes = [], $translations = null, $locale = null)
+    public static function create(array $attributes = [], $translations = [])
     {
         $model = new static($attributes);
 
-        if(is_string($translations)) {
-            $locale = $translations;
-        }
-
-        if($locale) {
-            $model->setLocale($locale);
-        }
-
         $model->save();
+
+        if(is_array($translations)) {
+            $model->saveTranslations($translations);
+        }
+
+        return $model;
+    }
+
+    /**
+     * Save a new model in provided locale and return the instance.
+     *
+     * @param string $locale
+     * @param array $attributes
+     * @param array|string $translations
+     * @return static
+     */
+    public static function createInLocale($locale, array $attributes = [], $translations = [])
+    {
+        $model = new static($attributes);
+
+        $model->setLocale($locale)->save();
 
         if(is_array($translations)) {
             $model->saveTranslations($translations);
@@ -51,19 +70,31 @@ trait Translatable
      * Save a new model and return the instance. Allow mass-assignment.
      *
      * @param array $attributes
-     * @param array|string|null $translations
-     * @param string|null $locale
+     * @param array|string $translations
      * @return static
      */
-    public static function forceCreate(array $attributes, $translations = null, $locale = null)
+    public static function forceCreate(array $attributes, $translations = [])
     {
-        // Since some versions of PHP have a bug that prevents it from properly
-        // binding the late static context in a closure, we will first store
-        // the model in a variable, which we will then use in the closure.
         $model = new static;
 
-        return static::unguarded(function () use ($model, $attributes, $translations, $locale) {
-            return $model->create($attributes, $translations, $locale);
+        return static::unguarded(function () use ($model, $attributes, $translations) {
+            return $model->create($attributes, $translations);
+        });
+    }
+
+    /**
+     * Save a new model in provided locale and return the instance. Allow mass-assignment.
+     *
+     * @param array $attributes
+     * @param array|string $translations
+     * @return static
+     */
+    public static function forceCreateInLocale($locale, array $attributes, $translations = [])
+    {
+        $model = new static;
+
+        return static::unguarded(function () use ($locale, $model, $attributes, $translations) {
+            return $model->createInLocale($locale, $attributes, $translations);
         });
     }
 
@@ -89,15 +120,38 @@ trait Translatable
     }
 
     /**
-     * @param array $attributes
-     * @param $locale
+     * @param array $translations
      * @return bool
      */
-    public function saveTranslation(array $attributes, $locale)
+    public function forceSaveTranslations(array $translations)
+    {
+        return static::unguarded(function () use ($translations) {
+            return $this->saveTranslations($translations);
+        });
+    }
+
+    /**
+     * @param $locale
+     * @param array $attributes
+     * @return bool
+     */
+    public function saveTranslation($locale, array $attributes)
     {
         return $this->saveTranslations([
             $locale => $attributes
         ]);
+    }
+
+    /**
+     * @param $locale
+     * @param array $attributes
+     * @return bool
+     */
+    public function forceSaveTranslation($locale, array $attributes)
+    {
+        return static::unguarded(function () use ($locale, $attributes) {
+            return $this->saveTranslation($locale, $attributes);
+        });
     }
 
     /**
@@ -194,7 +248,7 @@ trait Translatable
             return $this->locale;
         }
 
-        return TranslatableConfig::current();
+        return TranslatableConfig::currentLocale();
     }
 
     /**
@@ -221,7 +275,7 @@ trait Translatable
             return $this->fallbackLocale;
         }
 
-        return TranslatableConfig::fallback();
+        return TranslatableConfig::fallbackLocale();
     }
 
     /**
