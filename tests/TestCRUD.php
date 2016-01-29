@@ -138,4 +138,16 @@ class TestCRUD extends IntegrationTestCase
         $this->assertEquals(3, Post::onlyTranslated('en')->withFallback('de')->count());
         $this->assertEquals(2, Post::onlyTranslated('en')->withFallback('de')->where('title', 'LIKE', '%EN')->count());
     }
+
+    public function testDelete()
+    {
+        $post = Post::forceCreateInLocale('de', ['title'  => 'Title DE']);
+        $post->forceSaveTranslation('en', ['title'  => 'Title EN']);
+        Post::forceCreateInLocale('en', ['title'  => 'Title 2 EN']);
+
+        $post->delete();
+
+        $this->assertCount(1, Post::all());
+        $this->assertCount(1, Post::i18nQuery()->get());
+    }
 }

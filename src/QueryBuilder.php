@@ -113,6 +113,25 @@ class QueryBuilder extends Builder
     }
 
     /**
+     * Add a full sub-select to the query.
+     *
+     * @param string $column
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param string $boolean
+     * @return $this
+     */
+    public function whereSubQuery($column, $query, $boolean = 'and')
+    {
+        list($type, $operator) = ['Sub', 'in'];
+
+        $this->wheres[] = compact('type', 'column', 'operator', 'query', 'boolean');
+
+        $this->addBinding($query->getBindings(), 'where');
+
+        return $this;
+    }
+
+    /**
      * Add an "order by" clause by translated column to the query.
      *
      * @param  string  $column

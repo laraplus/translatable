@@ -75,7 +75,7 @@ To configure the package, add a service provider to your ``app.php`` configurati
 Optionally you can also adjust the default configuration by publishing the ``translatable.php`` configuration file:
 
 ```
-php artisan vendor:publish laraplus/translatable
+php artisan vendor:publish --provider="Laraplus\Data\TranslatableServiceProvider" --tag="config"
 ```
 
 See the configuration file to check out all available configuration options: https://github.com/laraplus/translatable/blob/master/config/translatable.php

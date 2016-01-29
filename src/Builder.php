@@ -1,6 +1,7 @@
 <?php namespace Laraplus\Data;
 
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Query\Expression;
 
 class Builder extends EloquentBuilder
 {
@@ -55,6 +56,30 @@ class Builder extends EloquentBuilder
             }
             return false;
         }
+    }
+
+    /**
+     * Delete a record from the database.
+     *
+     * @return mixed
+     */
+    public function delete()
+    {
+        if (isset($this->onDelete)) {
+            return call_user_func($this->onDelete, $this);
+        }
+
+        return $this->i18nDeleteQuery()->delete() && $this->toBase()->delete();
+    }
+
+    /**
+     * Run the default delete function on the builder.
+     *
+     * @return mixed
+     */
+    public function forceDelete()
+    {
+        return $this->i18nDeleteQuery(false)->delete() && $this->query->delete();
     }
 
     /**
@@ -120,15 +145,32 @@ class Builder extends EloquentBuilder
     }
 
     /**
-     * Get the underlying query builder instance for translation table.
+     * Get the query builder instance for translation table.
      *
      * @return \Illuminate\Database\Query\Builder
      */
-    protected function i18nQuery()
+    public function i18nQuery()
     {
         $query = $this->getModel()->newQueryWithoutScopes()->getQuery();
 
         $query->from($this->model->getI18nTable());
+
+        return $query;
+    }
+
+    /**
+     * Get the delete query instance for translation table.
+     *
+     * @param bool $withGlobalScopes
+     * @return \Illuminate\Database\Query\Builder
+     */
+    protected function i18nDeleteQuery($withGlobalScopes = true)
+    {
+        $subQuery = $withGlobalScopes ? $this->toBase() : $this->getQuery();
+        $subQuery->select($this->model->getQualifiedKeyName());
+
+        $query = $this->i18nQuery();
+        $query->whereSubQuery($this->model->getForeignKey(), $subQuery);
 
         return $query;
     }

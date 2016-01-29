@@ -35,7 +35,10 @@ class TranslatableServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->mergeConfigFrom(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'translatable.php', 'translatable');
+        $config = dirname(__DIR__) . '/config/translatable.php';
+
+        $this->mergeConfigFrom($config, 'translatable');
+        $this->publishes([$config => config_path('translatable.php')], 'config');
 
         TranslatableConfig::setDbSettings(
             $this->app['config']->get('translatable.db_settings')
