@@ -1,6 +1,6 @@
 <?php
 
-class UnitTests extends TestCase
+class TestQuery extends TestCase
 {
     public function testTranslationsAreJoined()
     {
@@ -14,7 +14,7 @@ class UnitTests extends TestCase
 
     public function testFallbackTranslationsAreJoinedByDefault()
     {
-        $query = Post::translate('de');
+        $query = Post::translateInto('de');
 
         $expected = $this->getJoinWithFallbackSql();
 
@@ -24,7 +24,7 @@ class UnitTests extends TestCase
 
     public function testFallbackTranslationsCanBeDisabled()
     {
-        $query = Post::translate('de')->withoutFallback();
+        $query = Post::translateInto('de')->withoutFallback();
 
         $expected =
             'select "posts".*, "posts_i18n"."title", "posts_i18n"."body" from "posts" '.
@@ -80,8 +80,8 @@ class UnitTests extends TestCase
 
     public function testWhereTranslatedWithFallback()
     {
-        $queryAnd = Post::translate('de')->where('title', 'my title');
-        $queryOr = Post::translate('de')->where('is_active', 1)->orWhere('title', 'my title');
+        $queryAnd = Post::translateInto('de')->where('title', 'my title');
+        $queryOr = Post::translateInto('de')->where('is_active', 1)->orWhere('title', 'my title');
 
         $expected = $this->getJoinWithFallbackSql();
 

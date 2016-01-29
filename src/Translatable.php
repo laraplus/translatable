@@ -1,5 +1,7 @@
 <?php namespace Laraplus\Data;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 trait Translatable
 {
     protected $overrideLocale = null;
@@ -205,6 +207,56 @@ trait Translatable
     }
 
     /**
+     * Get a collection of translated attributes in provided locale.
+     *
+     * @param $locale
+     * @return \Laraplus\Data\TranslationModel|null
+     */
+    public function translate($locale)
+    {
+        $found = $this->translations->where($this->getLocaleKey(), $locale)->first();
+
+        if(!$found && $this->shouldFallback($locale)) {
+            return $this->translate($this->getFallbackLocale());
+        }
+
+        return $found;
+    }
+
+    /**
+     * Translations relationship.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function translations()
+    {
+        $localKey = $this->getKeyName();
+        $foreignKey = $this->getForeignKey();
+        $instance = $this->translationModel();
+
+        return new HasMany($instance->newQuery(), $this, $instance->getTable() . '.' . $foreignKey, $localKey);
+    }
+
+    /**
+     * Returns the default translation model instance.
+     *
+     * @return DefaultTranslationModel
+     */
+    public function translationModel()
+    {
+        $translation = new TranslationModel();
+        $translation->setTable($this->getI18nTable());
+        $translation->setKeyName($this->getForeignKey());
+        $translation->setLocaleKey($this->getLocaleKey());
+
+        if ($attributes = $this->translatableAttributes()) {
+            $translation->fillable(array_intersect($attributes, $this->getFillable()));
+        }
+
+        return $translation;
+    }
+
+    /**
      * Get an array of translatable attributes.
      *
      * @return array
@@ -371,15 +423,18 @@ trait Translatable
     /**
      * Should fallback to a primary translation.
      *
+     * @param string|null $locale
      * @return bool
      */
-    public function shouldFallback()
+    public function shouldFallback($locale = null)
     {
         if(!$this->getWithFallback() || !$this->getFallbackLocale()) {
             return false;
         }
 
-        return $this->getLocale() != $this->getFallbackLocale();
+        $locale = $locale ?: $this->getLocale();
+
+        return $locale != $this->getFallbackLocale();
     }
 
     /**

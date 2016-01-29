@@ -11,23 +11,12 @@ class TranslatableServiceProvider extends ServiceProvider
      */
     public function register()
     {
-    }
-
-    /**
-     * Boot the service provider.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-        $this->mergeConfigFrom(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'translatable.php', 'translatable');
-
         TranslatableConfig::cacheGetter(function($table) {
             return $this->app['cache']->get('translatable.' . $table);
         });
 
         TranslatableConfig::cacheSetter(function($table, $fields) {
-            return $this->app['cache']->set('translatable.' . $table, $fields);
+            return $this->app['cache']->put('translatable.' . $table, $fields);
         });
 
         TranslatableConfig::currentLocaleGetter(function() {
@@ -37,6 +26,16 @@ class TranslatableServiceProvider extends ServiceProvider
         TranslatableConfig::fallbackLocaleGetter(function() {
             return $this->app->getFallbackLocale();
         });
+    }
+
+    /**
+     * Boot the service provider.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->mergeConfigFrom(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'translatable.php', 'translatable');
 
         TranslatableConfig::setDbSettings(
             $this->app['config']->get('translatable.db_settings')

@@ -2,9 +2,9 @@
 
 use Closure;
 use Illuminate\Support\Str;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Model as Eloquent;
 
 class QueryBuilder extends Builder
 {
@@ -16,7 +16,7 @@ class QueryBuilder extends Builder
      * @param \Illuminate\Database\Eloquent\Model $model
      * @return $this
      */
-    public function setModel(Model $model)
+    public function setModel(Eloquent $model)
     {
         $this->model = $model;
 

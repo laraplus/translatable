@@ -1,51 +1,7 @@
 <?php
 
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Eloquent\Model;
-
-class IntegrationTests extends TestCase
+class TestCRUD extends IntegrationTestCase
 {
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->schema()->create('users', function(Blueprint $table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('users_i18n', function(Blueprint $table) {
-            $table->integer('user_id')->unsigned();
-            $table->string('locale', 2);
-            $table->text('bio');
-            $table->primary(['user_id', 'locale']);
-        });
-
-        $this->schema()->create('posts', function(Blueprint $table) {
-            $table->increments('id');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('posts_i18n', function(Blueprint $table) {
-            $table->integer('post_id')->unsigned();
-            $table->string('locale', 2);
-            $table->string('title');
-            $table->text('body')->nullable();
-            $table->primary(['post_id', 'locale']);
-        });
-    }
-
-    public function tearDown()
-    {
-        parent::tearDown();
-
-        $this->schema()->drop('users');
-        $this->schema()->drop('users_i18n');
-        $this->schema()->drop('posts');
-        $this->schema()->drop('posts_i18n');
-    }
-
     public function testModelCanBeStoredAndRetrieved()
     {
         User::forceCreate([
@@ -73,7 +29,7 @@ class IntegrationTests extends TestCase
         $this->assertEquals('John Doe', $user->name);
         $this->assertEquals('Lorem ipsum', $user->bio);
 
-        $user = User::translate('de')->first();
+        $user = User::translateInto('de')->first();
         $this->assertEquals('John Doe', $user->name);
         $this->assertEquals('DE Lorem ipsum', $user->bio);
     }
@@ -85,7 +41,7 @@ class IntegrationTests extends TestCase
             'bio' => 'Lorem ipsum'
         ]);
 
-        $user = User::translate('de')->first();
+        $user = User::translateInto('de')->first();
         $this->assertEquals('John Doe', $user->name);
         $this->assertEquals('Lorem ipsum', $user->bio);
     }
@@ -97,7 +53,7 @@ class IntegrationTests extends TestCase
             'bio' => 'Lorem ipsum'
         ]);
 
-        $user = User::translate('de')->withoutFallback()->first();
+        $user = User::translateInto('de')->withoutFallback()->first();
         $this->assertEquals('John Doe', $user->name);
         $this->assertNull($user->bio);
     }
@@ -141,8 +97,8 @@ class IntegrationTests extends TestCase
         Post::forceCreateInLocale('de', ['title'  => 'Title']);
         Post::forceCreateInLocale('en', ['title'  => 'Title']);
 
-        $queryWithFallback = Post::translate('de')->where('title', 'Title');
-        $queryWithoutFallback = Post::withoutFallback()->translate('de')->where('title', 'Title');
+        $queryWithFallback = Post::translateInto('de')->where('title', 'Title');
+        $queryWithoutFallback = Post::translateInto('de')->withoutFallback()->where('title', 'Title');
 
         $this->assertEquals(2, $queryWithFallback->count());
         $this->assertEquals(1, $queryWithoutFallback->count());
@@ -153,7 +109,7 @@ class IntegrationTests extends TestCase
         Post::forceCreate(['title' => 'Title 1']);
         Post::forceCreate(['title' => 'Title 2']);
 
-        $this->assertEquals('Title 2', Post::orderByTranslated('title', 'desc')->first()->title);
+        $this->assertEquals('Title 2', Post::orderBy('title', 'desc')->first()->title);
     }
 
     public function testOrderByTranslatedWithFallback()
@@ -161,8 +117,8 @@ class IntegrationTests extends TestCase
         Post::forceCreateInLocale('de', ['title'  => 'Title 1']);
         Post::forceCreateInLocale('en', ['title'  => 'Title 2']);
 
-        $queryWithFallback = Post::translate('de')->orderBy('title', 'desc');
-        $queryWithoutFallback = Post::withoutFallback()->translate('de')->orderBy('title', 'desc');
+        $queryWithFallback = Post::translateInto('de')->orderBy('title', 'desc');
+        $queryWithoutFallback = Post::translateInto('de')->withoutFallback()->orderBy('title', 'desc');
 
         $this->assertEquals('Title 2', $queryWithFallback->first()->title);
         $this->assertEquals('Title 1', $queryWithoutFallback->first()->title);
@@ -176,29 +132,10 @@ class IntegrationTests extends TestCase
         Post::forceCreateInLocale('de', ['title'  => 'Title 2 DE']);
         Post::forceCreate(['id'  => 10]); // no translations
 
-        $this->assertEquals(4, Post::translate('en')->withFallback('de')->withUntranslated()->count());
-        $this->assertEquals(3, Post::translate('en')->withFallback('de')->onlyTranslated()->count());
+        $this->assertEquals(4, Post::translateInto('en')->withFallback('de')->withUntranslated()->count());
+        $this->assertEquals(3, Post::translateInto('en')->withFallback('de')->onlyTranslated()->count());
         $this->assertEquals(2, Post::onlyTranslated('en')->withoutFallback()->count());
         $this->assertEquals(3, Post::onlyTranslated('en')->withFallback('de')->count());
         $this->assertEquals(2, Post::onlyTranslated('en')->withFallback('de')->where('title', 'LIKE', '%EN')->count());
-    }
-
-    /**
-     * Get a database connection instance.
-     *
-     * @return \Illuminate\Database\Connection
-     */
-    protected function connection($connection = 'default')
-    {
-        return Model::getConnectionResolver()->connection($connection);
-    }
-    /**
-     * Get a schema builder instance.
-     *
-     * @return \Illuminate\Database\Schema\Builder
-     */
-    protected function schema($connection = 'default')
-    {
-        return $this->connection($connection)->getSchemaBuilder();
     }
 }

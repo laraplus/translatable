@@ -101,7 +101,7 @@ class TranslatableConfig
         return call_user_func_array(static::$config['cache']['getter'], [$table]);
     }
 
-    protected function checkIfSet($key1, $key2)
+    protected static function checkIfSet($key1, $key2)
     {
         if(empty(static::$config[$key1][$key2])) {
             throw new Exception("Translatable is not configured correctly. Config for [$key1.$key2] is missing.");

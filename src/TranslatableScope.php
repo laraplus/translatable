@@ -187,8 +187,21 @@ class TranslatableScope implements Scope
             return $builder;
         });
 
-        $builder->macro('translate', function (Builder $builder, $locale) {
+        $builder->macro('translateInto', function (Builder $builder, $locale) {
             $builder->getModel()->setLocale($locale);
+
+            return $builder;
+        });
+
+        $builder->macro('withoutTranslations', function (Builder $builder) {
+            $builder->withoutGlobalScope(static::class);
+
+            return $builder;
+        });
+
+        $builder->macro('withAllTranslations', function (Builder $builder) {
+            $builder->withoutGlobalScope(static::class)
+                ->with('translations');
 
             return $builder;
         });
