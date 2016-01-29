@@ -1,11 +1,11 @@
 <?php namespace Laraplus\Data;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Grammars\Grammar;
+use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Query\Grammars\SqlServerGrammar;
 
 class TranslatableScope implements Scope
@@ -27,7 +27,7 @@ class TranslatableScope implements Scope
      * @param  \Illuminate\Database\Eloquent\Model $model
      * @return void
      */
-    public function apply(Builder $builder, Model $model)
+    public function apply(Builder $builder, Eloquent $model)
     {
         $this->table = $model->getTable();
         $this->locale = $model->getLocale();
@@ -43,7 +43,7 @@ class TranslatableScope implements Scope
      * @param  \Illuminate\Database\Eloquent\Builder $builder
      * @param  \Illuminate\Database\Eloquent\Model $model
      */
-    protected function createJoin(Builder $builder, Model $model)
+    protected function createJoin(Builder $builder, Eloquent $model)
     {
         $joinType = $this->getJoinType($model);
 
@@ -60,7 +60,7 @@ class TranslatableScope implements Scope
      * @param \Illuminate\Database\Eloquent\Model $model
      * @return string
      */
-    protected function getJoinType(Model $model)
+    protected function getJoinType(Eloquent $model)
     {
         $innerJoin = !$model->shouldFallback() && $model->getOnlyTranslated();
 
@@ -73,7 +73,7 @@ class TranslatableScope implements Scope
      * @param string $alias
      * @return callable
      */
-    protected function getJoinClause(Model $model, $locale, $alias)
+    protected function getJoinClause(Eloquent $model, $locale, $alias)
     {
         return function (JoinClause $join) use ($model, $locale, $alias) {
             $primary = $model->getKeyName();
@@ -89,7 +89,7 @@ class TranslatableScope implements Scope
      * @param \Illuminate\Database\Eloquent\Builder $builder
      * @param \Illuminate\Database\Eloquent\Model $model
      */
-    protected function createWhere(Builder $builder, Model $model)
+    protected function createWhere(Builder $builder, Eloquent $model)
     {
         if($model->getOnlyTranslated() && $model->shouldFallback()) {
             $key = $model->getForeignKey();
@@ -106,7 +106,7 @@ class TranslatableScope implements Scope
      * @param \Illuminate\Database\Eloquent\Builder $builder
      * @param \Illuminate\Database\Eloquent\Model $model
      */
-    protected function createSelect(Builder $builder, Model $model)
+    protected function createSelect(Builder $builder, Eloquent $model)
     {
         if($builder->getQuery()->columns) {
             return;
@@ -122,7 +122,7 @@ class TranslatableScope implements Scope
      * @param \Illuminate\Database\Eloquent\Model $model
      * @return array
      */
-    protected function formatColumns(Builder $builder, Model $model)
+    protected function formatColumns(Builder $builder, Eloquent $model)
     {
         $map = function ($field) use ($builder, $model) {
             if (!$model->shouldFallback()) {
