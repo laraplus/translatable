@@ -188,7 +188,9 @@ class TranslatableScope implements Scope
         });
 
         $builder->macro('translateInto', function (Builder $builder, $locale) {
-            $builder->getModel()->setLocale($locale);
+            if($locale) {
+                $builder->getModel()->setLocale($locale);
+            }
 
             return $builder;
         });

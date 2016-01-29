@@ -195,13 +195,15 @@ trait Translatable
             return [];
         }
 
-        if($columns = TranslatableConfig::cacheGet($this->getTable())) {
+        if($columns = TranslatableConfig::cacheGet($this->getI18nTable())) {
             return $columns;
         }
 
-        $columns = $builder->getColumnListing($this->getTable());
+        $columns = $builder->getColumnListing($this->getI18nTable());
+        unset($columns[array_search($this->getForeignKey(), $columns)]);
+        unset($columns[array_search($this->getLocaleKey(), $columns)]);
 
-        TranslatableConfig::cacheSet($this->getTable(), $columns);
+        TranslatableConfig::cacheSet($this->getI18nTable(), $columns);
 
         return $columns;
     }

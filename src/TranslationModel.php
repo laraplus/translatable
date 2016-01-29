@@ -1,9 +1,9 @@
 <?php namespace Laraplus\Data;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
-class TranslationModel extends Model
+class TranslationModel extends Eloquent
 {
     /**
      * Translation model does not include timestamps by default
