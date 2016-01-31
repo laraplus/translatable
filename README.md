@@ -50,8 +50,8 @@ Or even return only translated records:
 Post::onlyTranslated()->all()
 ```
 
-Multiple (helpers)[#crud-operations] are available for all basic CRUD operations. For all available options, read the
-(full documentation)[#crud-operations] below.
+Multiple [helpers](#crud-operations) are available for all basic CRUD operations. For all available options, read the
+[full documentation](#crud-operations) below.
 
 
 ## Installation
