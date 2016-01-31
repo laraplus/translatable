@@ -7,12 +7,12 @@ This package provides a powerful and extremely easy way of managing multilingual
 It makes use of Laravel's 5.2 enhanced global scopes to join translated attributes to every query rather than utilizing
 relations (the way it's done in this excellent package by dimsav: https://github.com/dimsav/laravel-translatable). As a
 result only a single query is needed to fetch translated attributes and there is no need to create separate models for
-translation tables, making this package more powerful and easier to use. 
+translation tables, making this package easier to use.
 
 ## Quick demo
 
-To enable translations for your models, you first need to prepare your schema according to the convention. Then you can
-pull in the ``Translatable`` trait:
+To enable translations for your models, you first need to prepare your schema according to the
+[convention](#creating-migrations). Then you can pull in the ``Translatable`` trait:
 
 ```php
 use Laraplus\Data\Translatable;
@@ -50,7 +50,8 @@ Or even return only translated records:
 Post::onlyTranslated()->all()
 ```
 
-Multiple helpers are available for all basic CRUD operations. For all available options, read the full documentation below.
+Multiple (helpers)[#crud-operations] are available for all basic CRUD operations. For all available options, read the
+(full documentation)[#crud-operations] below.
 
 
 ## Installation
@@ -168,11 +169,75 @@ class Post extends Model
 }
 ```
 
-## Basic CRUD operations
+## CRUD operations
 
 ### Selecting rows
 
-TODO
+To select rows from your translatable models, you can use all of the usual Eloquent query helpers. The translatable
+attributes will be returned in your current locale. To learn more about how to configure localization settings in
+Laravel, read the official documentation: https://laravel.com/docs/5.2/localization
+
+```php
+Post::where('active', 1)->orderBy('title')->get();
+```
+
+#### Query helpers
+
+The query above will by default also return records that don't have any translations in the current or fallback locale.
+To return only translated rows, you can change the ``defaults.only_translated`` config option to ``true``, or use the
+``onlyTranslated()`` query helper:
+
+```php
+Post::onlyTranslated()->get();
+```
+
+Sometimes you may want to disable fallback translations altogether. To do this, you may either change the
+``defaults.with_fallback`` configuration option to false or use the ``withoutFallback()`` query helper:
+
+```php
+Post::withoutFallback()->get();
+```
+
+Both of the helpers above also have their opposite forms: ``withUntranslated()`` and ``withFallback()``. The latter
+helper also accepts an optional ``$locale`` argument, where you can change your default fallback locale:
+
+```php
+Post::withUntranslated()->withFallback()->get();
+Post::withUntranslated()->withFallback('de')->get();
+```
+
+Sometimes you may wish to retrieve translations in a locale different from the current one. To achieve that, you may use
+the ``translateInto($locale)`` helper:
+
+```php
+Post::translateInto('de')->get();
+```
+
+In case you don't need the translated attributes at all, you may use the ```withoutTranslation()``` helper, which will
+remove the translatable global scope from your query
+
+```php
+Post::withoutTranslations()->get();
+```
+
+#### Filtering and ordering by translated attributes
+
+Often you may wish to limit query results by translated attributes. This package allows you to use all of the usual
+Eloquent ``where`` clauses normally. This will work even with fallback translations since all of the columns within
+where clauses will be automatically wrapped in ``ifnull`` statements and prefixed with the appropriate table names:
+
+```php
+Post::where('title', 'LIKE', '%Laravel%')->orWhere('description', 'LIKE', '%Laravel%)->get();
+```
+
+The same is true for ``order by`` clauses, which will also be automatically transformed to the correct format:
+
+```php
+Post::orderBy('title')->get();
+```
+
+**Notice: if you are using ``whereRaw`` clauses, we will not be able to format your expressions automatically since
+we do not parse whereRaw expressions. Instead you will need to include the appropriate table prefix manually.**
 
 ### Inserting new rows
 
