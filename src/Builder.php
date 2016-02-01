@@ -1,7 +1,7 @@
 <?php namespace Laraplus\Data;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
-use Illuminate\Database\Query\Expression;
 
 class Builder extends EloquentBuilder
 {
@@ -173,5 +173,37 @@ class Builder extends EloquentBuilder
         $query->whereSubQuery($this->model->getForeignKey(), $subQuery);
 
         return $query;
+    }
+
+    /**
+     * Merge the "wheres" from a relation query to a has query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $hasQuery
+     * @param  \Illuminate\Database\Eloquent\Relations\Relation  $relation
+     */
+    protected function mergeModelDefinedRelationWheresToHasQuery(EloquentBuilder $hasQuery, Relation $relation)
+    {
+        // Here we have the "has" query and the original relation. We need to copy over any
+        // where clauses the developer may have put in the relationship function over to
+        // the has query, and then copy the bindings from the "has" query to the main.
+        $relationQuery = $relation->toBase();
+
+        $hasQuery = $hasQuery->withoutGlobalScopes();
+        $bindings = $relationQuery->getRawBindings();
+
+        $hasQuery->mergeWheres(
+            $relationQuery->wheres, $bindings['where']
+        );
+
+        // In addition to merging where clauses we should also merge select and join clauses
+        // since we utilize them to retrieve translated attributes. That way we'll ensure
+        // that has() and whereHas() sub-queries have access to translated attributes.
+        $hasQuery->addSelect($relationQuery->columns);
+
+        $relationJoins = (array) $relationQuery->joins;
+        $hasQueryJoins = (array) $hasQuery->getQuery()->joins;
+
+        $hasQuery->addBinding($bindings['join'], 'join');
+        $hasQuery->getQuery()->joins = array_merge($relationJoins, $hasQueryJoins);
     }
 }
