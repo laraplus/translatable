@@ -13,15 +13,20 @@ class Builder extends EloquentBuilder
      */
     public function update(array $values)
     {
+        $updated = 0;
         $values = $this->addUpdatedAtColumn($values);
 
         list($values, $i18nValues) = $this->filterValues($values);
 
-        if(!$values || $this->toBase()->update($values)) {
-            return $this->updateI18n($i18nValues);
+        if($values) {
+            $updated += $this->toBase()->update($values);
         }
 
-        return false;
+        if($i18nValues) {
+            $updated += $this->updateI18n($i18nValues);
+        }
+
+        return $updated;
     }
 
     /**
