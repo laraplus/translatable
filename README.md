@@ -5,13 +5,12 @@
 This package provides a powerful and extremely easy way of managing multilingual models in Eloquent.
 
 It makes use of Laravel's 5.2 enhanced global scopes to join translated attributes to every query rather than utilizing
-relations (the way it's done in this excellent package by dimsav: https://github.com/dimsav/laravel-translatable). As a
-result only a single query is needed to fetch translated attributes and there is no need to create separate models for
-translation tables, making this package easier to use.
+relations as some alternative packages. As a result, only a single query is required to fetch translated attributes and
+there is no need to create separate models for translation tables, making this package easier to use.
 
 ## Quick demo
 
-To enable translations for your models, you first need to prepare your schema according to the
+To enable translations in your models, you first need to prepare your schema according to the
 [convention](#creating-migrations). Then you can pull in the ``Translatable`` trait:
 
 ```php
@@ -80,7 +79,7 @@ Optionally you can also configure some other options by publishing the ``transla
 php artisan vendor:publish --provider="Laraplus\Data\TranslatableServiceProvider" --tag="config"
 ```
 
-See the configuration file to check all available configuration options:
+Open the configuration file to check all available settings:
 https://github.com/laraplus/translatable/blob/master/config/translatable.php
 
 ### Configuration outside Laravel
@@ -96,7 +95,7 @@ TranslatableConfig::fallbackLocaleGetter(function() {
 });
 ```
 
-You can optionally adjust other settings as well. To see all available options inspect Laravel's Service Provider:
+You can optionally adjust some other settings as well. To see all available options inspect Laravel's Service Provider:
 https://github.com/laraplus/translatable/blob/master/src/TranslatableServiceProvider.php
 
 ## Creating migrations
@@ -128,7 +127,7 @@ Schema::create('posts_i18n', function(Blueprint $table)
 
 By default, translation tables must end with ``_i18`` suffix but that can be changed in the configuration file. Also,
 translation table must contain a foreign key to the parent table as well as a ``locale`` field (also configurable) 
-which will contain the locale of translated attributes. Incrementing keys are not allowed on translation models. A
+which will store the locale of translated attributes. Incrementing keys are not allowed on translation models. A
 composite key containing ``locale`` and foreign key reference to the parent model needs to be defined instead.
 Optionally you may also define foreign key constraints, but the package will work without them as well.
 
@@ -175,7 +174,7 @@ class Post extends Model
 
 To select rows from your translatable models, you can use all of the usual Eloquent query helpers. The translatable
 attributes will be returned in your current locale. To learn more about how to configure localization settings in
-Laravel, read the official documentation: https://laravel.com/docs/5.2/localization
+Laravel, refer to the official documentation: https://laravel.com/docs/5.2/localization
 
 ```php
 Post::where('active', 1)->orderBy('title')->get();
@@ -192,14 +191,14 @@ Post::onlyTranslated()->get();
 ```
 
 Sometimes you may want to disable fallback translations altogether. To do this, you may either change the
-``defaults.with_fallback`` configuration option to false or use the ``withoutFallback()`` query helper:
+``defaults.with_fallback`` configuration option to ``false`` or use the ``withoutFallback()`` query helper:
 
 ```php
 Post::withoutFallback()->get();
 ```
 
-Both of the helpers above also have their opposite forms: ``withUntranslated()`` and ``withFallback()``. The latter
-helper also accepts an optional ``$locale`` argument, where you can change your default fallback locale:
+Both of the helpers above also have their opposite forms: ``withUntranslated()`` and ``withFallback()``. You may also
+provide an optional ``$locale`` argument to the ``withFallback()`` helper, where you can change the default fallback locale:
 
 ```php
 Post::withUntranslated()->withFallback()->get();
@@ -222,7 +221,7 @@ Post::withoutTranslations()->get();
 
 #### Filtering and ordering by translated attributes
 
-Often you may wish to limit query results by translated attributes. This package allows you to use all of the usual
+Often you may wish to filter query results by translated attributes. This package allows you to use all of the usual
 Eloquent ``where`` clauses normally. This will work even with fallback translations since all of the columns within
 where clauses will be automatically wrapped in ``ifnull`` statements and prefixed with the appropriate table names:
 
@@ -241,18 +240,115 @@ we do not parse whereRaw expressions. Instead you will need to include the appro
 
 ### Inserting new rows
 
-TODO
+When creating new models in the current locale, you may use the normal Laravel syntax, as if you were inserting rows in
+a single table:
+
+```php
+Post::create([
+    'title' => 'My title',
+    'published_at' => Carbon::now()
+]);
+```
+
+If you want to store the record in an alternative locale, you may use the ``createInLocale($locale, $attributes)`` helper:
+
+```php
+Post::createInLocale('de', [
+    'title' => 'My title',
+    'published_at' => Carbon::now()
+]);
+```
+
+Often you will need to store a new row together with all translations. To do that, you may list translatable attributes
+as a second argument of the ``create()`` method:
+
+```php
+Post::createInLocale('de', [
+    'published_at' => Carbon::now()
+], [
+    'en' => ['title' => 'Title in EN'],
+    'de' => ['title' => 'Title in DE'],
+]);
+```
+
+All of the helpers above also have their ``force`` forms that let you bust the mass assignment protection.
+
+```php
+Post::forceCreate([/*attributes*/], [/*translations*/]);
+Post::forceCreateInLocale($locale, [/*attributes*/]);
+```
 
 ### Updating existing rows
 
-TODO
+Updating records in the current locale is as easy as updating a single table:
+
+```php
+$user = User::first();
+$user->title = 'New title';
+$user->save();
+```
+
+If you wish to update record in another locale, you may use a ``saveTranslation($locale, $attributes)`` helper:
+
+```php
+$user = User::first();
+$user->saveTranslation('en', [
+    'title' => 'Title in EN'
+]);
+$user->saveTranslation('de', [
+    'title' => 'Title in DE'
+]);
+```
+
+A ``forceSaveTranslation($locale, $attributes)`` helper is also available to bust mass assignment protection.
+
+To update multiple rows at once, you may also use a query builder approach:
+
+```php
+User::where('published_at, '>', Carbon::now())->update(['title' => 'New title']);
+```
+
+To updatre a different locale using query builder, you can still use the ``transleteInto($locale)`` helper:
+
+```php
+User::where('published_at, '>', Carbon::now())->translateInto('de')->update(['title' => 'New title']);
+```
 
 ### Deleting rows
 
-TODO
+Deleting rows couldn't be easier. Do it as you were always doing it and translations will automatically be deleted
+together with the parent row:
 
-## Translations as HasMany relation
+```php
+$user = User::first();
+$user->delete();
+```
 
-TODO
+To delete multiple rows at once, you may also use a query builder. Translations will be cleaned up automatically:
 
+```php
+User::where('published_at, '>', Carbon::now())->delete();
+```
 
+## Translations as a relation
+
+Sometimes you may wish to retrieve all translations of a model. Luckily the package implements a ``hasMany`` relation
+which will help us do just that:
+
+```php
+$user = $user->first();
+
+foreach($user->translations as $translation) {
+    echo "Title in {$translation->locale} is {$translation->title}";
+}
+```
+
+Whe using the translation approach, you may often wish to preload the relation without joining translated attributes to
+the query. There is a ``withAllTranslations()`` helper available to do just that:
+
+```php
+User::withAllTranslations()->get();
+```
+
+**Notice: it is currently not possible to update or insert new records using the relation. Instead you can use the
+helpers described above.**
