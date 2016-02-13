@@ -6,6 +6,19 @@ It makes use of Laravel's 5.2 enhanced global scopes to join translated attribut
 relations as some alternative packages. As a result, only a single query is required to fetch translated attributes and
 there is no need to create separate models for translation tables, making this package easier to use.
 
+* [Quick demo](#quick-demo)
+* [Installation](#installation)
+  * [Configuration in Laravel] (#configuration-in-laravel)
+  * [Configuration outside Laravel] (#configuration-outside-laravel)
+* [Creating migrations] (#creating-migrations)
+* [Configuring models] (#configuring-models)
+* [CRUD operations] (#crud-operations)
+  * [Selecting rows] (#selecting-rows)
+  * [Inserting rows] (#inserting-rows)
+  * [Updating rows] (#updating-rows)
+  * [Deleting rows] (#deleting-rows)
+* [Translations as a relation] (#translations-as-a-relation)
+
 ## Quick demo
 
 To enable translations in your models, you first need to prepare your schema according to the
@@ -236,7 +249,7 @@ Post::orderBy('title')->get();
 **Notice: if you are using ``whereRaw`` clauses, we will not be able to format your expressions automatically since
 we do not parse whereRaw expressions. Instead you will need to include the appropriate table prefix manually.**
 
-### Inserting new rows
+### Inserting rows
 
 When creating new models in the current locale, you may use the normal Laravel syntax, as if you were inserting rows in
 a single table:
@@ -276,7 +289,7 @@ Post::forceCreate([/*attributes*/], [/*translations*/]);
 Post::forceCreateInLocale($locale, [/*attributes*/]);
 ```
 
-### Updating existing rows
+### Updating rows
 
 Updating records in the current locale is as easy as updating a single table:
 
