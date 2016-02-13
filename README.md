@@ -316,13 +316,13 @@ A ``forceSaveTranslation($locale, $attributes)`` helper is also available to bus
 To update multiple rows at once, you may also use a query builder approach:
 
 ```php
-User::where('published_at, '>', Carbon::now())->update(['title' => 'New title']);
+User::where('published_at', '>', Carbon::now())->update(['title' => 'New title']);
 ```
 
 To update a different locale using query builder, you can still use the ``transleteInto($locale)`` helper:
 
 ```php
-User::where('published_at, '>', Carbon::now())->translateInto('de')->update(['title' => 'New title']);
+User::where('published_at', '>', Carbon::now())->translateInto('de')->update(['title' => 'New title']);
 ```
 
 ### Deleting rows
@@ -338,7 +338,7 @@ $user->delete();
 To delete multiple rows at once, you may also use a query builder. Translations will be cleaned up automatically:
 
 ```php
-User::where('published_at, '>', Carbon::now())->delete();
+User::where('published_at', '>', Carbon::now())->delete();
 ```
 
 ## Translations as a relation
