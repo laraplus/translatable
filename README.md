@@ -1,7 +1,5 @@
 # Translatable Eloquent models (Laravel 5.2+)
 
-**Still in development - stable release will be available soon!**
-
 This package provides a powerful and extremely easy way of managing multilingual models in Eloquent.
 
 It makes use of Laravel's 5.2 enhanced global scopes to join translated attributes to every query rather than utilizing
@@ -308,7 +306,7 @@ To update multiple rows at once, you may also use a query builder approach:
 User::where('published_at, '>', Carbon::now())->update(['title' => 'New title']);
 ```
 
-To updatre a different locale using query builder, you can still use the ``transleteInto($locale)`` helper:
+To update a different locale using query builder, you can still use the ``transleteInto($locale)`` helper:
 
 ```php
 User::where('published_at, '>', Carbon::now())->translateInto('de')->update(['title' => 'New title']);
@@ -343,8 +341,17 @@ foreach($user->translations as $translation) {
 }
 ```
 
-Whe using the translation approach, you may often wish to preload the relation without joining translated attributes to
-the query. There is a ``withAllTranslations()`` helper available to do just that:
+A ``translate($locale)`` helper is available when you wish to access an attribute in a specific locale:
+
+```php
+$user = $user->first();
+
+$user->translate('en')->title; // Title in EN
+$user->translate('de')->title; // Title in DE
+```
+
+You may often wish to preload the relation without joining translated attributes to the query. There is a
+``withAllTranslations()`` helper available to do just that:
 
 ```php
 User::withAllTranslations()->get();

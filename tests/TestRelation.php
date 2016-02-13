@@ -8,6 +8,9 @@ class TestRelation extends IntegrationTestCase
 
         $model = Post::find(1);
         $this->assertCount(3, $model->translations);
+        $this->assertEquals('Title EN', $model->translate('en')->title);
+        $this->assertEquals('Title FR', $model->translate('fr')->title);
+        $this->assertEquals('Title DE', $model->translate('de')->title);
     }
 
     public function testTranslationsCanBeUpdatedByRelation()
