@@ -274,7 +274,7 @@ Often you will need to store a new row together with all translations. To do tha
 as a second argument of the ``create()`` method:
 
 ```php
-Post::createInLocale('de', [
+Post::create([
     'published_at' => Carbon::now()
 ], [
     'en' => ['title' => 'Title in EN'],
