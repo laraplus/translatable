@@ -1,6 +1,6 @@
 # Translatable Eloquent models (Laravel 5.2+)
 
-This package provides a powerful and extremely easy way of managing multilingual models in Eloquent.
+This package provides a powerful and transparent way of managing multilingual models in Eloquent.
 
 It makes use of Laravel's 5.2 enhanced global scopes to join translated attributes to every query rather than utilizing
 relations as some alternative packages. As a result, only a single query is required to fetch translated attributes and
@@ -111,7 +111,7 @@ https://github.com/laraplus/translatable/blob/master/src/TranslatableServiceProv
 
 ## Creating migrations
 
-To utilize multilingual models you need to prepare your database tables in a certain was. Each translatable table
+To utilize multilingual models you need to prepare your database tables in a certain way. Each translatable table
 consists of translatable and non translatable attributes. While non translatable attributes can be added to your table
 normally, translatable fields need to be in their own table named according to the convention.
 
@@ -183,9 +183,9 @@ class Post extends Model
 
 ### Selecting rows
 
-To select rows from your translatable models, you can use all of the usual Eloquent query helpers. The translatable
-attributes will be returned in your current locale. To learn more about how to configure localization settings in
-Laravel, refer to the official documentation: https://laravel.com/docs/5.2/localization
+To select rows from your translatable models, you can use all of the usual Eloquent query helpers. Translatable
+attributes will be returned in your current locale. To learn more about how to configure localization in Laravel,
+refer to the official documentation: https://laravel.com/docs/5.2/localization
 
 ```php
 Post::where('active', 1)->orderBy('title')->get();
@@ -209,7 +209,7 @@ Post::withoutFallback()->get();
 ```
 
 Both of the helpers above also have their opposite forms: ``withUntranslated()`` and ``withFallback()``. You may also
-provide an optional ``$locale`` argument to the ``withFallback()`` helper, where you can change the default fallback locale:
+provide an optional ``$locale`` argument to the ``withFallback()`` helper to change the default fallback locale:
 
 ```php
 Post::withUntranslated()->withFallback()->get();
@@ -223,7 +223,7 @@ the ``translateInto($locale)`` helper:
 Post::translateInto('de')->get();
 ```
 
-In case you don't need the translated attributes at all, you may use the ```withoutTranslation()``` helper, which will
+In case you don't need the translated attributes at all, you may use the ```withoutTranslations()``` helper, which will
 remove the translatable global scope from your query
 
 ```php
@@ -237,7 +237,7 @@ Eloquent ``where`` clauses normally. This will work even with fallback translati
 where clauses will be automatically wrapped in ``ifnull`` statements and prefixed with the appropriate table names:
 
 ```php
-Post::where('title', 'LIKE', '%Laravel%')->orWhere('description', 'LIKE', '%Laravel%)->get();
+Post::where('title', 'LIKE', '%Laravel%')->orWhere('description', 'LIKE', '%Laravel%')->get();
 ```
 
 The same is true for ``order by`` clauses, which will also be automatically transformed to the correct format:
@@ -265,12 +265,12 @@ If you want to store the record in an alternative locale, you may use the ``crea
 
 ```php
 Post::createInLocale('de', [
-    'title' => 'My title',
+    'title' => 'Title in DE',
     'published_at' => Carbon::now()
 ]);
 ```
 
-Often you will need to store a new row together with all translations. To do that, you may list translatable attributes
+Often you will need to store a new record together with all translations. To do that, you may list translatable attributes
 as a second argument of the ``create()`` method:
 
 ```php
@@ -291,7 +291,7 @@ Post::forceCreateInLocale($locale, [/*attributes*/]);
 
 ### Updating rows
 
-Updating records in the current locale is as easy as updating a single table:
+Updating records in the current locale is as easy as if you were updating a single table:
 
 ```php
 $user = User::first();
@@ -299,7 +299,8 @@ $user->title = 'New title';
 $user->save();
 ```
 
-If you wish to update record in another locale, you may use a ``saveTranslation($locale, $attributes)`` helper:
+If you wish to update a record in another locale, you may use the ``saveTranslation($locale, $attributes)`` helper
+that will either update an existing translation or create a new one (if it doesn't exist yet):
 
 ```php
 $user = User::first();
@@ -313,13 +314,13 @@ $user->saveTranslation('de', [
 
 A ``forceSaveTranslation($locale, $attributes)`` helper is also available to bust mass assignment protection.
 
-To update multiple rows at once, you may also use a query builder approach:
+To update multiple rows at once, you may also use the query builder:
 
 ```php
 User::where('published_at', '>', Carbon::now())->update(['title' => 'New title']);
 ```
 
-To update a different locale using query builder, you can still use the ``transleteInto($locale)`` helper:
+To update a different locale using the query builder, you can call the ``transleteInto($locale)`` helper:
 
 ```php
 User::where('published_at', '>', Carbon::now())->translateInto('de')->update(['title' => 'New title']);
@@ -327,15 +328,15 @@ User::where('published_at', '>', Carbon::now())->translateInto('de')->update(['t
 
 ### Deleting rows
 
-Deleting rows couldn't be easier. Do it as you were always doing it and translations will automatically be deleted
-together with the parent row:
+Deleting rows couldn't be easier. Do it as per usual and translations will be automatically deleted together with
+the parent row:
 
 ```php
 $user = User::first();
 $user->delete();
 ```
 
-To delete multiple rows at once, you may also use a query builder. Translations will be cleaned up automatically:
+To delete multiple rows at once, you may also use the query builder. Translations will be cleaned up automatically:
 
 ```php
 User::where('published_at', '>', Carbon::now())->delete();
@@ -350,7 +351,7 @@ which will help us do just that:
 $user = $user->first();
 
 foreach($user->translations as $translation) {
-    echo "Title in {$translation->locale} is {$translation->title}";
+    echo "Title in {$translation->locale}: {$translation->title}";
 }
 ```
 
@@ -363,12 +364,12 @@ $user->translate('en')->title; // Title in EN
 $user->translate('de')->title; // Title in DE
 ```
 
-You may often wish to preload the relation without joining translated attributes to the query. There is a
-``withAllTranslations()`` helper available to do just that:
+When using the relation, you will usually want to preload it without joining translated attributes to the query.
+There is a ``withAllTranslations()`` helper available to do just that:
 
 ```php
 User::withAllTranslations()->get();
 ```
 
-**Notice: it is currently not possible to update or insert new records using the relation. Instead you can use the
-helpers described above.**
+**Notice: it is currently limited support for updating and inserting new records using the relation. Instead you
+can use the helpers described above.**
