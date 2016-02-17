@@ -59,8 +59,9 @@ class Builder extends EloquentBuilder
             if($this->insertI18n($i18nValues, $id)) {
                 return $id;
             }
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -100,7 +101,7 @@ class Builder extends EloquentBuilder
         $translatable = [];
 
         foreach($attributes as $key) {
-            if(isset($values[$key])) {
+            if(array_key_exists($key, $values)) {
                 $translatable[$key] = $values[$key];
 
                 unset($values[$key]);
