@@ -201,7 +201,6 @@ trait Translatable
 
         $columns = $builder->getColumnListing($this->getI18nTable());
         unset($columns[array_search($this->getForeignKey(), $columns)]);
-        unset($columns[array_search($this->getLocaleKey(), $columns)]);
 
         TranslatableConfig::cacheSet($this->getI18nTable(), $columns);
 
