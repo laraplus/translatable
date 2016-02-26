@@ -371,5 +371,5 @@ There is a ``withAllTranslations()`` helper available to do just that:
 User::withAllTranslations()->get();
 ```
 
-**Notice: it is currently limited support for updating and inserting new records using the relation. Instead you
+**Notice: there is currently limited support for updating and inserting new records using the relation. Instead you
 can use the helpers described above.**
