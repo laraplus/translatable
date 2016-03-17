@@ -54,6 +54,22 @@ class QueryBuilder extends Builder
     }
 
     /**
+     * Add a where clause to the query and don't modify it for i18n.
+     *
+     * @param  string|\Closure  $column
+     * @param  string  $operator
+     * @param  mixed   $value
+     * @param  string  $boolean
+     * @return $this
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function whereOriginal($column, $operator = null, $value = null, $boolean = 'and')
+    {
+        return parent::where($column, $operator, $value, $boolean);
+    }
+
+    /**
      * Add a translation where clause to the query.
      *
      * @param  string|\Closure  $column

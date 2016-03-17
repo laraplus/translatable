@@ -139,8 +139,8 @@ class Builder extends EloquentBuilder
         }
 
         $updated = $this->i18nQuery()
-            ->where($this->model->getForeignKey(), $this->model->getKey())
-            ->where($this->model->getLocaleKey(), $this->model->getLocale())
+            ->whereOriginal($this->model->getForeignKey(), $this->model->getKey())
+            ->whereOriginal($this->model->getLocaleKey(), $this->model->getLocale())
             ->update($values);
 
         if(!$updated) {
