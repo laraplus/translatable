@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">=5.5.0",
-    "illuminate/database": "~5.2@dev"
+    "illuminate/database": "~5.2"
   },
   "require-dev": {
     "phpunit/phpunit": "5.1.*"
