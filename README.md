@@ -1,5 +1,7 @@
 # Translatable Eloquent models (Laravel 5.2+)
 
+[![Build Status](https://travis-ci.org/laraplus/translatable.svg)](https://travis-ci.org/laraplus/translatable)
+
 This package provides a powerful and transparent way of managing multilingual models in Eloquent.
 
 It makes use of Laravel's 5.2 enhanced global scopes to join translated attributes to every query rather than utilizing
