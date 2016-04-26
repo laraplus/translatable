@@ -11,7 +11,7 @@ abstract class TestCase extends PHPUnit_Framework_TestCase
 
         $capsule->addConnection([
             'driver' => 'sqlite',
-            'database' => __DIR__.'/stubs/database.sqlite',
+            'database' => ':memory:',
             'prefix' => ''
         ]);
 
