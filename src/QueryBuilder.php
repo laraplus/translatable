@@ -1,6 +1,7 @@
 <?php namespace Laraplus\Data;
 
 use Closure;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Illuminate\Database\Query\Builder;
@@ -21,6 +22,62 @@ class QueryBuilder extends Builder
         $this->model = $model;
 
         return $this;
+    }
+
+    /**
+     * Set the columns to be selected.
+     *
+     * @param  array|mixed  $columns
+     * @return $this
+     */
+    public function select($columns = ['*'])
+    {
+        parent::select($columns);
+
+        $this->columns = $this->qualifyColumns($this->columns);
+
+        return $this;
+    }
+
+    /**
+     * Add a new select column to the query.
+     *
+     * @param  array|mixed  $column
+     * @return $this
+     */
+    public function addSelect($column)
+    {
+        $column = $this->qualifyColumns(is_array($column) ? $column : func_get_args());
+
+        $this->columns = array_merge((array) $this->columns, $column);
+
+        return $this;
+    }
+
+    /**
+     * Qualify translated columns
+     *
+     * @param $columns
+     * @return mixed
+     */
+    protected function qualifyColumns($columns)
+    {
+        foreach($columns as &$column) {
+            if(!in_array($column, $this->model->translatableAttributes())) {
+                continue;
+            }
+
+            $primary = $this->qualifyTranslationColumn($column);
+            $fallback = $this->qualifyTranslationColumn($column, true);
+
+            if($this->model->shouldFallback()) {
+                $column = new Expression($this->compileIfNull($primary, $fallback, $column));
+            } else {
+                $column = $primary;
+            }
+        }
+
+        return $columns;
     }
 
     /**
