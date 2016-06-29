@@ -1,5 +1,6 @@
 <?php namespace Laraplus\Data;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
@@ -204,12 +205,14 @@ class Builder extends EloquentBuilder
         // In addition to merging where clauses we should also merge select and join clauses
         // since we utilize them to retrieve translated attributes. That way we'll ensure
         // that has() and whereHas() sub-queries have access to translated attributes.
-        $hasQuery->addSelect($relationQuery->columns);
+        if(! $relation instanceof BelongsToMany) {
+            $hasQuery->addSelect($relationQuery->columns);
 
-        $relationJoins = (array) $relationQuery->joins;
-        $hasQueryJoins = (array) $hasQuery->getQuery()->joins;
+            $relationJoins = (array) $relationQuery->joins;
+            $hasQueryJoins = (array) $hasQuery->getQuery()->joins;
 
-        $hasQuery->addBinding($bindings['join'], 'join');
-        $hasQuery->getQuery()->joins = array_merge($relationJoins, $hasQueryJoins);
+            $hasQuery->addBinding($bindings['join'], 'join');
+            $hasQuery->getQuery()->joins = array_merge($relationJoins, $hasQueryJoins);
+        }
     }
 }
