@@ -3,10 +3,10 @@
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Database\Query\Expression;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Query\Grammars\SqlServerGrammar;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
 class TranslatableScope implements Scope
 {
@@ -27,7 +27,7 @@ class TranslatableScope implements Scope
      * @param  \Illuminate\Database\Eloquent\Model $model
      * @return void
      */
-    public function apply(Builder $builder, Eloquent $model)
+    public function apply(EloquentBuilder $builder, Eloquent $model)
     {
         $this->table = $model->getTable();
         $this->locale = $model->getLocale();
@@ -43,7 +43,7 @@ class TranslatableScope implements Scope
      * @param  \Illuminate\Database\Eloquent\Builder $builder
      * @param  \Illuminate\Database\Eloquent\Model $model
      */
-    protected function createJoin(Builder $builder, Eloquent $model)
+    protected function createJoin(EloquentBuilder $builder, Eloquent $model)
     {
         $joinType = $this->getJoinType($model);
 
@@ -89,7 +89,7 @@ class TranslatableScope implements Scope
      * @param \Illuminate\Database\Eloquent\Builder $builder
      * @param \Illuminate\Database\Eloquent\Model $model
      */
-    protected function createWhere(Builder $builder, Eloquent $model)
+    protected function createWhere(EloquentBuilder $builder, Eloquent $model)
     {
         if($model->getOnlyTranslated() && $model->shouldFallback()) {
             $key = $model->getForeignKey();
@@ -106,7 +106,7 @@ class TranslatableScope implements Scope
      * @param \Illuminate\Database\Eloquent\Builder $builder
      * @param \Illuminate\Database\Eloquent\Model $model
      */
-    protected function createSelect(Builder $builder, Eloquent $model)
+    protected function createSelect(EloquentBuilder $builder, Eloquent $model)
     {
         if($builder->getQuery()->columns) {
             return;
@@ -122,7 +122,7 @@ class TranslatableScope implements Scope
      * @param \Illuminate\Database\Eloquent\Model $model
      * @return array
      */
-    protected function formatColumns(Builder $builder, Eloquent $model)
+    protected function formatColumns(EloquentBuilder $builder, Eloquent $model)
     {
         $map = function ($field) use ($builder, $model) {
             if (!$model->shouldFallback()) {
@@ -153,9 +153,9 @@ class TranslatableScope implements Scope
      * Extend the builder.
      * @param Builder $builder
      */
-    public function extend(Builder $builder)
+    public function extend(EloquentBuilder $builder)
     {
-        $builder->macro('onlyTranslated', function (Builder $builder, $locale = null) {
+        $builder->macro('onlyTranslated', function (EloquentBuilder $builder, $locale = null) {
             $builder->getModel()->setOnlyTranslated(true);
 
             if($locale) {
@@ -165,13 +165,13 @@ class TranslatableScope implements Scope
             return $builder;
         });
 
-        $builder->macro('withUntranslated', function (Builder $builder) {
+        $builder->macro('withUntranslated', function (EloquentBuilder $builder) {
             $builder->getModel()->setOnlyTranslated(false);
 
             return $builder;
         });
 
-        $builder->macro('withFallback', function (Builder $builder, $fallbackLocale = null) {
+        $builder->macro('withFallback', function (EloquentBuilder $builder, $fallbackLocale = null) {
             $builder->getModel()->setWithFallback(true);
 
             if($fallbackLocale) {
@@ -181,13 +181,13 @@ class TranslatableScope implements Scope
             return $builder;
         });
 
-        $builder->macro('withoutFallback', function (Builder $builder) {
+        $builder->macro('withoutFallback', function (EloquentBuilder $builder) {
             $builder->getModel()->setWithFallback(false);
 
             return $builder;
         });
 
-        $builder->macro('translateInto', function (Builder $builder, $locale) {
+        $builder->macro('translateInto', function (EloquentBuilder $builder, $locale) {
             if($locale) {
                 $builder->getModel()->setLocale($locale);
             }
@@ -195,13 +195,13 @@ class TranslatableScope implements Scope
             return $builder;
         });
 
-        $builder->macro('withoutTranslations', function (Builder $builder) {
+        $builder->macro('withoutTranslations', function (EloquentBuilder $builder) {
             $builder->withoutGlobalScope(static::class);
 
             return $builder;
         });
 
-        $builder->macro('withAllTranslations', function (Builder $builder) {
+        $builder->macro('withAllTranslations', function (EloquentBuilder $builder) {
             $builder->withoutGlobalScope(static::class)
                 ->with('translations');
 
