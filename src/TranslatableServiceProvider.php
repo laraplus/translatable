@@ -24,7 +24,9 @@ class TranslatableServiceProvider extends ServiceProvider
         });
 
         TranslatableConfig::fallbackLocaleGetter(function() {
-            return $this->app->getFallbackLocale();
+            return method_exists($this->app, 'getFallbackLocale')
+                ? $this->app->getFallbackLocale()
+                : config('app.fallback_locale');
         });
     }
 
