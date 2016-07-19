@@ -44,6 +44,21 @@ class TestRelation extends IntegrationTestCase
         $this->assertEquals('Tag title', Post::first()->tags()->first()->title);
     }
 
+    public function testHasRelationQueries()
+    {
+        $post1 = Post::forceCreate(['title'  => 'Post 1 title']);
+        $post2 = Post::forceCreate(['title'  => 'Post 2 title']);
+        $tag = Tag::forceCreate(['title'  => 'Tag title']);
+
+        $post1->tags()->sync([$tag->id]);
+
+        $results = Tag::has('posts')->get();
+
+        $this->assertEquals(1, $results->count());
+        $this->assertEquals('Tag title', $results->first()->title);
+
+    }
+
     protected function createTwoPostsWithOneTranslatedInThreeLocales()
     {
         $post = Post::forceCreateInLocale('de', ['title'  => 'Title DE']);
