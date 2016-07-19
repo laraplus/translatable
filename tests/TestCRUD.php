@@ -104,6 +104,16 @@ class TestCRUD extends IntegrationTestCase
         $this->assertEquals(1, $queryWithoutFallback->count());
     }
 
+    public function testWhereTranslatedWithArray()
+    {
+        Post::forceCreateInLocale('de', ['title'  => 'Title']);
+        Post::forceCreateInLocale('en', ['title'  => 'Title']);
+
+        $result = Post::translateInto('de')->where(['title' => 'Title'])->get();
+
+        $this->assertEquals(2, $result->count());
+    }
+
     public function testOrderByTranslated()
     {
         Post::forceCreate(['title' => 'Title 1']);
