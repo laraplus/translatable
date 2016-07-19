@@ -279,4 +279,16 @@ class QueryBuilder extends Builder
 
         return "{$ifNull}($primary, $fallback)" . $alias;
     }
+
+    /**
+     * Get a new instance of the query builder.
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function newQuery()
+    {
+        $query = parent::newQuery();
+
+        return $query->setModel($this->model);
+    }
 }

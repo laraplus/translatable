@@ -34,6 +34,22 @@ abstract class IntegrationTestCase extends TestCase
             $table->text('body')->nullable();
             $table->primary(['post_id', 'locale']);
         });
+
+        $this->schema()->create('tags', function (Blueprint $table) {
+            $table->increments('id');
+            $table->timestamps();
+        });
+
+        $this->schema()->create('tags_i18n', function (Blueprint $table) {
+            $table->integer('tag_id')->unsigned();
+            $table->string('locale', 2);
+            $table->string('title');
+        });
+
+        $this->schema()->create('post_tag', function (Blueprint $table) {
+            $table->integer('post_id')->unsigned()->index();
+            $table->integer('tag_id')->unsigned()->index();
+        });
     }
 
     public function tearDown()

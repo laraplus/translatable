@@ -33,6 +33,17 @@ class TestRelation extends IntegrationTestCase
         $this->assertEquals('New Title', Post::find(1)->title);
     }
 
+    public function testSyncInManyToManyRelationship()
+    {
+        $post = Post::forceCreate(['title'  => 'Post title']);
+        $tag = Tag::forceCreate(['title'  => 'Tag title']);
+
+        $post->tags()->sync([$tag->id]);
+
+        $this->assertEquals(1, Post::first()->tags->count());
+        $this->assertEquals('Tag title', Post::first()->tags()->first()->title);
+    }
+
     protected function createTwoPostsWithOneTranslatedInThreeLocales()
     {
         $post = Post::forceCreateInLocale('de', ['title'  => 'Title DE']);
