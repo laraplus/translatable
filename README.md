@@ -134,7 +134,7 @@ Schema::create('posts_i18n', function(Blueprint $table)
     $table->string('title');
     $table->string('body');
     
-    $table->primary('post_id', 'locale');
+    $table->primary(['post_id', 'locale']);
 });
 ```
 
