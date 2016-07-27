@@ -1,11 +1,12 @@
 <?php namespace Laraplus\Data;
 
 use Closure;
-use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Model as Eloquent;
+use Illuminate\Database\Query\Grammars\SqlServerGrammar;
 
 class QueryBuilder extends Builder
 {
