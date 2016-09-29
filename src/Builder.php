@@ -139,16 +139,15 @@ class Builder extends EloquentBuilder
             return true;
         }
 
-        $updated = $this->i18nQuery()
+        $query = $this->i18nQuery()
             ->whereOriginal($this->model->getForeignKey(), $this->model->getKey())
-            ->whereOriginal($this->model->getLocaleKey(), $this->model->getLocale())
-            ->update($values);
+            ->whereOriginal($this->model->getLocaleKey(), $this->model->getLocale());
 
-        if(!$updated) {
+        if($query->exists()) {
+            return $query->update($values);
+        } else {
             return $this->insertI18n($values, $this->model->getKey());
         }
-
-        return true;
     }
 
     /**
