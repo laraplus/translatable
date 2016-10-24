@@ -34,6 +34,19 @@ class TestCRUD extends IntegrationTestCase
         $this->assertEquals('DE Lorem ipsum', $user->bio);
     }
 
+    public function testModelWithIdenticalTranslationsIsSaved()
+    {
+        User::forceCreate([
+            'name' => 'John Doe'
+        ], [
+            'en' => ['bio' => 'Sample bio'],
+            'de' => ['bio' => 'Sample bio'],
+        ]);
+
+        $this->assertEquals('Sample bio', User::withoutFallback()->onlyTranslated('en')->first()->bio);
+        $this->assertEquals('Sample bio', User::withoutFallback()->onlyTranslated('de')->first()->bio);
+    }
+
     public function testFallbackLocaleIsUsedWhenNoMatchingLocaleIsFound()
     {
         User::forceCreate([

@@ -12,6 +12,8 @@ trait Translatable
 
     protected $overrideWithFallback = null;
 
+    protected $localeChanged = false;
+
     /**
      * Translated attributes cache
      *
@@ -287,6 +289,8 @@ trait Translatable
     {
         $this->overrideLocale = $locale;
 
+        $this->localeChanged = true;
+
         return $this;
     }
 
@@ -463,5 +467,39 @@ trait Translatable
         $builder = new QueryBuilder($conn, $grammar, $conn->getPostProcessor());
 
         return $builder->setModel($this);
+    }
+
+    /**
+     * Get the attributes that have been changed since last sync.
+     *
+     * @return array
+     */
+    public function getDirty()
+    {
+        $dirty = parent::getDirty();
+
+        if(! $this->localeChanged) {
+            return $dirty;
+        }
+
+        foreach ($this->translatableAttributes() as $key) {
+            if(isset($this->attributes[$key])) {
+                $dirty[$key] = $this->attributes[$key];
+            }
+        }
+
+        return $dirty;
+    }
+
+    /**
+     * Sync the original attributes with the current.
+     *
+     * @return $this
+     */
+    public function syncOriginal()
+    {
+        $this->localeChanged = false;
+
+        return parent::syncOriginal();
     }
 }
