@@ -173,4 +173,19 @@ class TestCRUD extends IntegrationTestCase
         $this->assertCount(1, Post::all());
         $this->assertCount(1, Post::i18nQuery()->get());
     }
+
+    public function testIncrementDecrement()
+    {
+        $user = User::forceCreate([
+            'name' => 'John Doe',
+            'bio' => 'Lorem ipsum ...',
+            'age' => 20
+        ]);
+
+        $user->increment('age');
+        $this->assertEquals(21, User::first()->age);
+
+        $user->decrement('age');
+        $this->assertEquals(20, User::first()->age);
+    }
 }

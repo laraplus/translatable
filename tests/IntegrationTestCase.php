@@ -12,6 +12,7 @@ abstract class IntegrationTestCase extends TestCase
         $this->schema()->create('users', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
+            $table->integer('age')->nullable();
             $table->timestamps();
         });
 

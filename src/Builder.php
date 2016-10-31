@@ -1,7 +1,5 @@
 <?php namespace Laraplus\Data;
 
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
 class Builder extends EloquentBuilder
@@ -20,7 +18,7 @@ class Builder extends EloquentBuilder
         list($values, $i18nValues) = $this->filterValues($values);
 
         if($values) {
-            $updated += $this->toBase()->update($values);
+            $updated += $this->noTranslationsQuery()->update($values);
         }
 
         if($i18nValues) {
@@ -28,6 +26,36 @@ class Builder extends EloquentBuilder
         }
 
         return $updated;
+    }
+
+    /**
+     * Increment a column's value by a given amount.
+     *
+     * @param  string  $column
+     * @param  int  $amount
+     * @param  array  $extra
+     * @return int
+     */
+    public function increment($column, $amount = 1, array $extra = [])
+    {
+        $extra = $this->addUpdatedAtColumn($extra);
+
+        return $this->noTranslationsQuery()->increment($column, $amount, $extra);
+    }
+
+    /**
+     * Decrement a column's value by a given amount.
+     *
+     * @param  string  $column
+     * @param  int  $amount
+     * @param  array  $extra
+     * @return int
+     */
+    public function decrement($column, $amount = 1, array $extra = [])
+    {
+        $extra = $this->addUpdatedAtColumn($extra);
+
+        return $this->noTranslationsQuery()->decrement($column, $amount, $extra);
     }
 
     /**
@@ -179,5 +207,15 @@ class Builder extends EloquentBuilder
         $query->whereSubQuery($this->model->getForeignKey(), $subQuery);
 
         return $query;
+    }
+
+    /**
+     * Get the base query without translations
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    protected function noTranslationsQuery()
+    {
+        return $this->withoutGlobalScope(TranslatableScope::class)->toBase();
     }
 }
