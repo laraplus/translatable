@@ -203,10 +203,9 @@ class Builder extends EloquentBuilder
         $subQuery = $withGlobalScopes ? $this->toBase() : $this->getQuery();
         $subQuery->select($this->model->getQualifiedKeyName());
 
-        $query = $this->i18nQuery();
-        $query->whereSubQuery($this->model->getForeignKey(), $subQuery);
-
-        return $query;
+        return $this->i18nQuery()->whereIn(
+            $this->model->getForeignKey(), $subQuery->pluck($this->model->getKeyName())
+        );
     }
 
     /**
