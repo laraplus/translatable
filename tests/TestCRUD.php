@@ -97,6 +97,22 @@ class TestCRUD extends IntegrationTestCase
         $this->assertEquals('Lorem ipsum', $user->bio);
     }
 
+    public function testSaveTranslationHelper()
+    {
+        User::forceCreate([
+            'name' => 'John Doe',
+            'bio' => 'Lorem ipsum'
+        ]);
+
+        $user = User::first();
+        $user->forceSaveTranslation('de', ['bio' => 'Lorem ipsum DE']);
+        $user->forceSaveTranslation('fr', ['bio' => 'Lorem ipsum FR']);
+
+        $this->assertEquals('Lorem ipsum', User::translateInto('en')->first()->bio);
+        $this->assertEquals('Lorem ipsum DE', User::translateInto('de')->first()->bio);
+        $this->assertEquals('Lorem ipsum FR', User::translateInto('fr')->first()->bio);
+    }
+
     public function testWhereTranslated()
     {
         Post::forceCreate(['title' => 'Title 1']);

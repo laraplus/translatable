@@ -172,6 +172,7 @@ class Builder extends EloquentBuilder
             ->whereOriginal($this->model->getLocaleKey(), $this->model->getLocale());
 
         if($query->exists()) {
+            unset($values[$this->model->getLocaleKey()]);
             return $query->update($values);
         } else {
             return $this->insertI18n($values, $this->model->getKey());
