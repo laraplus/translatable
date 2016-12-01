@@ -97,6 +97,26 @@ class TestCRUD extends IntegrationTestCase
         $this->assertEquals('Lorem ipsum', $user->bio);
     }
 
+    public function testModelCanBeMassUpdated()
+    {
+        Post::forceCreate([
+            'id' => 1,
+            'title' => 'Lorem ipsum',
+        ]);
+
+        Post::forceCreate([
+            'id' => 2,
+            'title' => 'Lorem ipsum',
+        ]);
+
+        Post::where('title', 'Lorem ipsum')->update([
+            'title' => 'Lorem ipsum 2'
+        ]);
+
+        $this->assertEquals('Lorem ipsum 2', Post::find(1)->title);
+        $this->assertEquals('Lorem ipsum 2', Post::find(2)->title);
+    }
+
     public function testSaveTranslationHelper()
     {
         User::forceCreate([
@@ -188,6 +208,17 @@ class TestCRUD extends IntegrationTestCase
 
         $this->assertCount(1, Post::all());
         $this->assertCount(1, Post::i18nQuery()->get());
+    }
+
+    public function testDeleteWithoutTranslations()
+    {
+        Post::forceCreate(['title'  => 'Title']);
+        Post::i18nQuery()->truncate();
+
+        $post = Post::first();
+        $post->delete();
+
+        $this->assertCount(0, Post::all());
     }
 
     public function testIncrementDecrement()
