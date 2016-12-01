@@ -6,7 +6,7 @@ class TestCRUD extends IntegrationTestCase
     {
         User::forceCreate([
             'name' => 'John Doe',
-            'bio' => 'Lorem ipsum'
+            'bio' => 'Lorem ipsum',
         ]);
 
         $user = User::first();
@@ -18,11 +18,11 @@ class TestCRUD extends IntegrationTestCase
     {
         $user = User::forceCreate([
             'name' => 'John Doe',
-            'bio'  => 'Lorem ipsum'
+            'bio'  => 'Lorem ipsum',
         ]);
 
         $user->forceSaveTranslation('de', [
-            'bio' => 'DE Lorem ipsum'
+            'bio' => 'DE Lorem ipsum',
         ]);
 
         $user = User::first();
@@ -37,7 +37,7 @@ class TestCRUD extends IntegrationTestCase
     public function testModelWithIdenticalTranslationsIsSaved()
     {
         User::forceCreate([
-            'name' => 'John Doe'
+            'name' => 'John Doe',
         ], [
             'en' => ['bio' => 'Sample bio'],
             'de' => ['bio' => 'Sample bio'],
@@ -51,7 +51,7 @@ class TestCRUD extends IntegrationTestCase
     {
         User::forceCreate([
             'name' => 'John Doe',
-            'bio' => 'Lorem ipsum'
+            'bio' => 'Lorem ipsum',
         ]);
 
         $user = User::translateInto('de')->first();
@@ -63,7 +63,7 @@ class TestCRUD extends IntegrationTestCase
     {
         User::forceCreate([
             'name' => 'John Doe',
-            'bio' => 'Lorem ipsum'
+            'bio' => 'Lorem ipsum',
         ]);
 
         $user = User::translateInto('de')->withoutFallback()->first();
@@ -75,7 +75,7 @@ class TestCRUD extends IntegrationTestCase
     {
         $user = User::forceCreate([
             'name' => 'John Doe',
-            'bio' => 'Lorem ipsum'
+            'bio' => 'Lorem ipsum',
         ]);
 
         $user->name = 'Jane Doe';
@@ -101,7 +101,7 @@ class TestCRUD extends IntegrationTestCase
     {
         User::forceCreate([
             'name' => 'John Doe',
-            'bio' => 'Lorem ipsum'
+            'bio' => 'Lorem ipsum',
         ]);
 
         $user = User::first();
@@ -195,7 +195,7 @@ class TestCRUD extends IntegrationTestCase
         $user = User::forceCreate([
             'name' => 'John Doe',
             'bio' => 'Lorem ipsum ...',
-            'age' => 20
+            'age' => 20,
         ]);
 
         $user->increment('age');
