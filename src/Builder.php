@@ -13,16 +13,21 @@ class Builder extends EloquentBuilder
     public function update(array $values)
     {
         $updated = 0;
-        $values = $this->addUpdatedAtColumn($values);
 
+        $modelKey = $this->getModel()->getKey();
+        $modelKeyName = $this->model->getKeyName();
+
+        $values = $this->addUpdatedAtColumn($values);
         list($values, $i18nValues) = $this->filterValues($values);
 
+        $ids = $modelKey ? [$modelKey] : $this->pluck($modelKeyName)->all();
+
         if($values) {
-            $updated += $this->noTranslationsQuery()->update($values);
+            $updated += $this->updateBase($values, $ids);
         }
 
         if($i18nValues) {
-            $updated += $this->updateI18n($i18nValues);
+            $updated += $this->updateI18n($i18nValues, $ids);
         }
 
         return $updated;
@@ -104,7 +109,7 @@ class Builder extends EloquentBuilder
             return call_user_func($this->onDelete, $this);
         }
 
-        return $this->i18nDeleteQuery()->delete() && $this->toBase()->delete();
+        return $this->i18nDeleteQuery()->delete() | $this->toBase()->delete();
     }
 
     /**
@@ -158,25 +163,48 @@ class Builder extends EloquentBuilder
     }
 
     /**
+     * Update values in base table
+     *
      * @param array $values
+     * @param $ids
+     * @return mixed
+     */
+    private function updateBase(array $values, array $ids)
+    {
+        $query = $this->model->newQuery()
+            ->whereIn($this->model->getKeyName(), $ids)
+            ->getQuery();
+
+        return $query->update($values);
+    }
+
+    /**
+     * @param array $values
+     * @param array $ids
      * @return bool
      */
-    protected function updateI18n(array $values)
+    protected function updateI18n(array $values, array $ids)
     {
         if(count($values) == 0) {
             return true;
         }
 
-        $query = $this->i18nQuery()
-            ->whereOriginal($this->model->getForeignKey(), $this->model->getKey())
-            ->whereOriginal($this->model->getLocaleKey(), $this->model->getLocale());
+        $updated = 0;
 
-        if($query->exists()) {
-            unset($values[$this->model->getLocaleKey()]);
-            return $query->update($values);
-        } else {
-            return $this->insertI18n($values, $this->model->getKey());
+        foreach($ids as $id) {
+            $query = $this->i18nQuery()
+                ->whereOriginal($this->model->getForeignKey(), $id)
+                ->whereOriginal($this->model->getLocaleKey(), $this->model->getLocale());
+
+            if($query->exists()) {
+                unset($values[$this->model->getLocaleKey()]);
+                $updated += $query->update($values);
+            } else {
+                $updated += $this->insertI18n($values, $id);
+            }
         }
+
+        return $updated;
     }
 
     /**
