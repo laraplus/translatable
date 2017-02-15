@@ -25,6 +25,7 @@ abstract class IntegrationTestCase extends TestCase
 
         $this->schema()->create('posts', function (Blueprint $table) {
             $table->increments('id');
+            $table->string('image')->nullable();
             $table->timestamps();
         });
 
