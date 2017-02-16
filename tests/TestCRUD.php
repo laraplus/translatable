@@ -133,6 +133,46 @@ class TestCRUD extends IntegrationTestCase
         $this->assertEquals('Lorem ipsum FR', User::translateInto('fr')->first()->bio);
     }
 
+    public function testSaveTranslationWithoutSideEffectsDependingOrderOperations()
+    {
+        Post::forceCreate([]);
+
+        $post = Post::first();
+        $post->forceSaveTranslation('de', ['title' => 'Title DE']);
+        $post->forceSaveTranslation('fr', ['title' => 'Title FR']);
+        $post->forceSaveTranslation('de', ['body' => 'Body DE']);
+        $post->forceSaveTranslation('fr', ['body' => 'Body FR']);
+
+        $this->assertEquals('Title DE', Post::translateInto('de')->first()->title);
+        $this->assertEquals('Body DE', Post::translateInto('de')->first()->body);
+        $this->assertEquals('Title FR', Post::translateInto('fr')->first()->title);
+        $this->assertEquals('Body FR', Post::translateInto('fr')->first()->body);
+    }
+
+    public function testSaveTranslationWithoutSideEffectsWhenUpdateModel()
+    {
+        Post::forceCreate([]);
+
+        $post = Post::first();
+
+        $post->forceSaveTranslation('en', [
+            'title' => 'Title EN v2',
+            'body' => 'Body EN v2',
+        ]);
+        $post->forceSaveTranslation('de', [
+            'title' => 'Title DE v2',
+            'body' => 'Body DE v2',
+        ]);
+
+        $post->forceFill(['image' => 'blog_cover.png'])->save();
+
+        $this->assertEquals('Title DE v2', Post::translateInto('de')->first()->title);
+        $this->assertEquals('Body DE v2', Post::translateInto('de')->first()->body);
+        $this->assertEquals('Title EN v2', Post::translateInto('en')->first()->title);
+        $this->assertEquals('Body EN v2', Post::translateInto('en')->first()->body);
+        $this->assertEquals('blog_cover.png', Post::first()->image);
+    }
+
     public function testWhereTranslated()
     {
         Post::forceCreate(['title' => 'Title 1']);

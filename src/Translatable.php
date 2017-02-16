@@ -108,17 +108,15 @@ trait Translatable
      */
     public function saveTranslations(array $translations)
     {
-        $backup = $this->getLocale();
         $success = true;
 
         foreach($translations as $locale => $attributes) {
-            $this->setLocale($locale);
-            $this->fill($attributes);
+            $model = clone $this;
+            $model->setLocale($locale);
+            $model->fill($attributes);
 
-            $success &= $this->save();
+            $success &= $model->save();
         }
-
-        $this->setLocale($backup);
 
         return $success;
     }
