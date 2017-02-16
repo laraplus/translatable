@@ -111,7 +111,7 @@ trait Translatable
         $success = true;
 
         foreach($translations as $locale => $attributes) {
-            $model = $this->fresh();
+            $model = clone $this;
             $model->setLocale($locale);
             $model->fill($attributes);
 

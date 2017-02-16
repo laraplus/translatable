@@ -164,7 +164,7 @@ class TestCRUD extends IntegrationTestCase
             'body' => 'Body DE v2',
         ]);
 
-        $post->update(['image' => 'blog_cover.png']);
+        $post->forceFill(['image' => 'blog_cover.png'])->save();
 
         $this->assertEquals('Title DE v2', Post::translateInto('de')->first()->title);
         $this->assertEquals('Body DE v2', Post::translateInto('de')->first()->body);
