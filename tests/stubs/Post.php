@@ -8,6 +8,7 @@ class Post extends Model
     use Translatable;
 
     protected $translatable = ['title', 'body'];
+    protected $fillable = ['title', 'body'];
 
     public function user()
     {

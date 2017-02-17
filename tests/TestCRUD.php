@@ -133,6 +133,23 @@ class TestCRUD extends IntegrationTestCase
         $this->assertEquals('Lorem ipsum FR', User::translateInto('fr')->first()->bio);
     }
 
+    public function testSaveTranslationWithoutSideEffectsWhenUseFillable()
+    {
+        Post::forceCreate([]);
+
+        $post = Post::first();
+        $post->forceSaveTranslation('de', ['title' => 'Title DE']);
+        $post->title = 'Title EN';
+        $post->body = 'Body EN';
+        $post->save();
+        $post->forceSaveTranslation('de', ['body' => 'Body DE']);
+
+        $this->assertEquals('Title EN', Post::translateInto('en')->first()->title);
+        $this->assertEquals('Body EN', Post::translateInto('en')->first()->body);
+        $this->assertEquals('Title DE', Post::translateInto('de')->first()->title);
+        $this->assertEquals('Body DE', Post::translateInto('de')->first()->body);
+    }
+
     public function testSaveTranslationWithoutSideEffectsDependingOrderOperations()
     {
         Post::forceCreate([]);
