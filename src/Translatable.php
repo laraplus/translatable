@@ -109,9 +109,10 @@ trait Translatable
     public function saveTranslations(array $translations)
     {
         $success = true;
+        $fresh = $this->fresh();
 
         foreach($translations as $locale => $attributes) {
-            $model = clone $this;
+            $model = clone $fresh;
             $model->setLocale($locale);
             $model->fill($attributes);
 
