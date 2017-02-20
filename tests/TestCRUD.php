@@ -138,11 +138,11 @@ class TestCRUD extends IntegrationTestCase
         Post::forceCreate([]);
 
         $post = Post::first();
-        $post->forceSaveTranslation('de', ['title' => 'Title DE']);
+        $post->saveTranslation('de', ['title' => 'Title DE']);
         $post->title = 'Title EN';
         $post->body = 'Body EN';
         $post->save();
-        $post->forceSaveTranslation('de', ['body' => 'Body DE']);
+        $post->saveTranslation('de', ['body' => 'Body DE']);
 
         $this->assertEquals('Title EN', Post::translateInto('en')->first()->title);
         $this->assertEquals('Body EN', Post::translateInto('en')->first()->body);
