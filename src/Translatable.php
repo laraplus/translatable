@@ -40,9 +40,7 @@ trait Translatable
     {
         $model = new static($attributes);
 
-        $model->save();
-
-        if(is_array($translations)) {
+        if($model->save() && is_array($translations)) {
             $model->saveTranslations($translations);
         }
 
@@ -59,11 +57,9 @@ trait Translatable
      */
     public static function createInLocale($locale, array $attributes = [], $translations = [])
     {
-        $model = new static($attributes);
+        $model = (new static($attributes))->setLocale($locale);
 
-        $model->setLocale($locale)->save();
-
-        if(is_array($translations)) {
+        if($model->save() && is_array($translations)) {
             $model->saveTranslations($translations);
         }
 
