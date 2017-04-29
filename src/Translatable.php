@@ -220,7 +220,24 @@ trait Translatable
 
         return $found;
     }
-
+	
+	/**
+	 * Get a collection of translated attributes in provided locale or create new one.
+	 *
+	 * @param $locale
+	 * @return \Laraplus\Data\TranslationModel
+	 */
+	public function translateOrNew($locale)
+	{
+		
+		if (is_null($instance = $this->translate($locale))) {
+			return $this->newModelInstance();
+		}
+		
+		return $instance;
+		
+	}
+	
     /**
      * Translations relationship.
      *
