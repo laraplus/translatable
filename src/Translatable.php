@@ -5,22 +5,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 trait Translatable
 {
     protected $overrideLocale = null;
-
+    
     protected $overrideFallbackLocale = null;
-
+    
     protected $overrideOnlyTranslated = null;
-
+    
     protected $overrideWithFallback = null;
-
+    
     protected $localeChanged = false;
-
+    
     /**
      * Translated attributes cache
      *
      * @var array
      */
     protected static $i18nAttributes = [];
-
+    
     /**
      * Boot the trait.
      */
@@ -28,7 +28,7 @@ trait Translatable
     {
         static::addGlobalScope(new TranslatableScope);
     }
-
+    
     /**
      * Save a new model and return the instance.
      *
@@ -39,14 +39,14 @@ trait Translatable
     public static function create(array $attributes = [], $translations = [])
     {
         $model = new static($attributes);
-
-        if($model->save() && is_array($translations)) {
+        
+        if ($model->save() && is_array($translations)) {
             $model->saveTranslations($translations);
         }
-
+        
         return $model;
     }
-
+    
     /**
      * Save a new model in provided locale and return the instance.
      *
@@ -58,14 +58,14 @@ trait Translatable
     public static function createInLocale($locale, array $attributes = [], $translations = [])
     {
         $model = (new static($attributes))->setLocale($locale);
-
-        if($model->save() && is_array($translations)) {
+        
+        if ($model->save() && is_array($translations)) {
             $model->saveTranslations($translations);
         }
-
+        
         return $model;
     }
-
+    
     /**
      * Save a new model and return the instance. Allow mass-assignment.
      *
@@ -76,12 +76,12 @@ trait Translatable
     public static function forceCreate(array $attributes, $translations = [])
     {
         $model = new static;
-
+        
         return static::unguarded(function () use ($model, $attributes, $translations) {
             return $model->create($attributes, $translations);
         });
     }
-
+    
     /**
      * Save a new model in provided locale and return the instance. Allow mass-assignment.
      *
@@ -92,12 +92,12 @@ trait Translatable
     public static function forceCreateInLocale($locale, array $attributes, $translations = [])
     {
         $model = new static;
-
+        
         return static::unguarded(function () use ($locale, $model, $attributes, $translations) {
             return $model->createInLocale($locale, $attributes, $translations);
         });
     }
-
+    
     /**
      * @param array $translations
      * @return bool
@@ -106,18 +106,18 @@ trait Translatable
     {
         $success = true;
         $fresh = $this->fresh();
-
-        foreach($translations as $locale => $attributes) {
+        
+        foreach ($translations as $locale => $attributes) {
             $model = clone $fresh;
             $model->setLocale($locale);
             $model->fill($attributes);
-
+            
             $success &= $model->save();
         }
-
+        
         return $success;
     }
-
+    
     /**
      * @param array $translations
      * @return bool
@@ -128,7 +128,7 @@ trait Translatable
             return $this->saveTranslations($translations);
         });
     }
-
+    
     /**
      * @param $locale
      * @param array $attributes
@@ -140,7 +140,7 @@ trait Translatable
             $locale => $attributes
         ]);
     }
-
+    
     /**
      * @param $locale
      * @param array $attributes
@@ -152,7 +152,7 @@ trait Translatable
             return $this->saveTranslation($locale, $attributes);
         });
     }
-
+    
     /**
      * @param array $attributes
      * @return $this
@@ -160,13 +160,13 @@ trait Translatable
      */
     public function fill(array $attributes)
     {
-        if(!isset(static::$i18nAttributes[$this->getTable()])) {
+        if (!isset(static::$i18nAttributes[$this->getTable()])) {
             $this->initTranslatableAttributes();
         }
-
+        
         return parent::fill($attributes);
     }
-
+    
     /**
      * Init translatable attributes.
      */
@@ -177,10 +177,10 @@ trait Translatable
         } else {
             $attributes = $this->getTranslatableAttributesFromSchema();
         }
-
+        
         static::$i18nAttributes[$this->getTable()] = $attributes;
     }
-
+    
     /**
      * Get an array of translatable attributes from schema.
      *
@@ -191,19 +191,19 @@ trait Translatable
         if ((!$con = $this->getConnection()) || (!$builder = $con->getSchemaBuilder())) {
             return [];
         }
-
-        if($columns = TranslatableConfig::cacheGet($this->getI18nTable())) {
+        
+        if ($columns = TranslatableConfig::cacheGet($this->getI18nTable())) {
             return $columns;
         }
-
+        
         $columns = $builder->getColumnListing($this->getI18nTable());
         unset($columns[array_search($this->getForeignKey(), $columns)]);
-
+        
         TranslatableConfig::cacheSet($this->getI18nTable(), $columns);
-
+        
         return $columns;
     }
-
+    
     /**
      * Get a collection of translated attributes in provided locale.
      *
@@ -213,14 +213,29 @@ trait Translatable
     public function translate($locale)
     {
         $found = $this->translations->where($this->getLocaleKey(), $locale)->first();
-
-        if(!$found && $this->shouldFallback($locale)) {
+        
+        if (!$found && $this->shouldFallback($locale)) {
             return $this->translate($this->getFallbackLocale());
         }
-
+        
         return $found;
     }
-
+    
+    /**
+     * Get a collection of translated attributes in provided locale or create new one.
+     *
+     * @param $locale
+     * @return \Laraplus\Data\TranslationModel
+     */
+    public function translateOrNew($locale)
+    {
+        if (is_null($instance = $this->translate($locale))) {
+            return $this->newModelInstance();
+        }
+        
+        return $instance;
+    }
+    
     /**
      * Translations relationship.
      *
@@ -231,10 +246,10 @@ trait Translatable
         $localKey = $this->getKeyName();
         $foreignKey = $this->getForeignKey();
         $instance = $this->translationModel();
-
+        
         return new HasMany($instance->newQuery(), $this, $instance->getTable() . '.' . $foreignKey, $localKey);
     }
-
+    
     /**
      * Returns the default translation model instance.
      *
@@ -246,14 +261,14 @@ trait Translatable
         $translation->setTable($this->getI18nTable());
         $translation->setKeyName($this->getForeignKey());
         $translation->setLocaleKey($this->getLocaleKey());
-
+        
         if ($attributes = $this->translatableAttributes()) {
             $translation->fillable(array_intersect($attributes, $this->getFillable()));
         }
-
+        
         return $translation;
     }
-
+    
     /**
      * Get an array of translatable attributes.
      *
@@ -263,7 +278,7 @@ trait Translatable
     {
         return static::$i18nAttributes[$this->getTable()];
     }
-
+    
     /**
      * Get name of the locale key.
      *
@@ -273,7 +288,7 @@ trait Translatable
     {
         return TranslatableConfig::dbKey();
     }
-
+    
     /**
      * Get current locale
      *
@@ -283,12 +298,12 @@ trait Translatable
     public function setLocale($locale)
     {
         $this->overrideLocale = $locale;
-
+        
         $this->localeChanged = true;
-
+        
         return $this;
     }
-
+    
     /**
      * Get current locale
      *
@@ -296,17 +311,17 @@ trait Translatable
      */
     public function getLocale()
     {
-        if($this->overrideLocale) {
+        if ($this->overrideLocale) {
             return $this->overrideLocale;
         }
-
-        if(property_exists($this, 'locale')) {
+        
+        if (property_exists($this, 'locale')) {
             return $this->locale;
         }
-
+        
         return TranslatableConfig::currentLocale();
     }
-
+    
     /**
      * Get current locale
      *
@@ -316,10 +331,10 @@ trait Translatable
     public function setFallbackLocale($locale)
     {
         $this->overrideFallbackLocale = $locale;
-
+        
         return $this;
     }
-
+    
     /**
      * Get current locale
      *
@@ -327,17 +342,17 @@ trait Translatable
      */
     public function getFallbackLocale()
     {
-        if($this->overrideFallbackLocale) {
+        if ($this->overrideFallbackLocale) {
             return $this->overrideFallbackLocale;
         }
-
-        if(property_exists($this, 'fallbackLocale')) {
+        
+        if (property_exists($this, 'fallbackLocale')) {
             return $this->fallbackLocale;
         }
-
+        
         return TranslatableConfig::fallbackLocale();
     }
-
+    
     /**
      * Set if model should select only translated rows
      *
@@ -347,10 +362,10 @@ trait Translatable
     public function setOnlyTranslated($onlyTranslated)
     {
         $this->overrideOnlyTranslated = $onlyTranslated;
-
+        
         return $this;
     }
-
+    
     /**
      * Get current locale
      *
@@ -358,17 +373,17 @@ trait Translatable
      */
     public function getOnlyTranslated()
     {
-        if(!is_null($this->overrideOnlyTranslated)) {
+        if (!is_null($this->overrideOnlyTranslated)) {
             return $this->overrideOnlyTranslated;
         }
-
-        if(property_exists($this, 'onlyTranslated')) {
+        
+        if (property_exists($this, 'onlyTranslated')) {
             return $this->onlyTranslated;
         }
-
+        
         return TranslatableConfig::onlyTranslated();
     }
-
+    
     /**
      * Set if model should select only translated rows
      *
@@ -378,10 +393,10 @@ trait Translatable
     public function setWithFallback($withFallback)
     {
         $this->overrideWithFallback = $withFallback;
-
+        
         return $this;
     }
-
+    
     /**
      * Get current locale
      *
@@ -389,17 +404,17 @@ trait Translatable
      */
     public function getWithFallback()
     {
-        if(!is_null($this->overrideWithFallback)) {
+        if (!is_null($this->overrideWithFallback)) {
             return $this->overrideWithFallback;
         }
-
-        if(property_exists($this, 'withFallback')) {
+        
+        if (property_exists($this, 'withFallback')) {
             return $this->withFallback;
         }
-
+        
         return TranslatableConfig::withFallback();
     }
-
+    
     /**
      * Get the i18n table associated with the model.
      *
@@ -409,7 +424,7 @@ trait Translatable
     {
         return $this->getTable() . $this->getTranslationTableSuffix();
     }
-
+    
     /**
      * Get the i18n table suffix.
      *
@@ -419,7 +434,7 @@ trait Translatable
     {
         return TranslatableConfig::dbSuffix();
     }
-
+    
     /**
      * Should fallback to a primary translation.
      *
@@ -428,26 +443,26 @@ trait Translatable
      */
     public function shouldFallback($locale = null)
     {
-        if(!$this->getWithFallback() || !$this->getFallbackLocale()) {
+        if (!$this->getWithFallback() || !$this->getFallbackLocale()) {
             return false;
         }
-
+        
         $locale = $locale ?: $this->getLocale();
-
+        
         return $locale != $this->getFallbackLocale();
     }
-
+    
     /**
      * Create a new Eloquent query builder for the model.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  \Illuminate\Database\Query\Builder $query
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
     public function newEloquentBuilder($query)
     {
         return new Builder($query);
     }
-
+    
     /**
      * Get a new query builder instance for the connection.
      *
@@ -456,14 +471,14 @@ trait Translatable
     protected function newBaseQueryBuilder()
     {
         $conn = $this->getConnection();
-
+        
         $grammar = $conn->getQueryGrammar();
-
+        
         $builder = new QueryBuilder($conn, $grammar, $conn->getPostProcessor());
-
+        
         return $builder->setModel($this);
     }
-
+    
     /**
      * Get the attributes that have been changed since last sync.
      *
@@ -472,20 +487,20 @@ trait Translatable
     public function getDirty()
     {
         $dirty = parent::getDirty();
-
-        if(! $this->localeChanged) {
+        
+        if (!$this->localeChanged) {
             return $dirty;
         }
-
+        
         foreach ($this->translatableAttributes() as $key) {
-            if(isset($this->attributes[$key])) {
+            if (isset($this->attributes[$key])) {
                 $dirty[$key] = $this->attributes[$key];
             }
         }
-
+        
         return $dirty;
     }
-
+    
     /**
      * Sync the original attributes with the current.
      *
@@ -494,7 +509,7 @@ trait Translatable
     public function syncOriginal()
     {
         $this->localeChanged = false;
-
+        
         return parent::syncOriginal();
     }
 }
