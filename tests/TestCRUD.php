@@ -190,6 +190,14 @@ class TestCRUD extends IntegrationTestCase
         $this->assertEquals('blog_cover.png', Post::first()->image);
     }
 
+    public function testFreshReturnsTranslations()
+    {
+        $post = Post::forceCreate(['title' => 'Title 1']);
+        $post->title = 'Changed';
+
+        $this->assertEquals('Title 1', $post->fresh()->title);
+    }
+
     public function testWhereTranslated()
     {
         Post::forceCreate(['title' => 'Title 1']);

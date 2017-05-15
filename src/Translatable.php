@@ -126,7 +126,7 @@ trait Translatable
     public function saveTranslations(array $translations)
     {
         $success = true;
-        $fresh = $this->fresh();
+        $fresh = parent::fresh();
 
         foreach($translations as $locale => $attributes) {
             $model = clone $fresh;
