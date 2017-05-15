@@ -98,6 +98,27 @@ trait Translatable
         });
     }
 
+	/**
+     * Reload a fresh model instance from the database.
+     *
+     * @param  array|string  $with
+     * @return static|null
+     */
+    public function fresh($with = [])
+    {
+        if (! $this->exists) {
+            return;
+        }
+
+        $query = static::newQueryWithoutScopes()
+            ->with(is_string($with) ? func_get_args() : $with)
+            ->where($this->getKeyName(), $this->getKey());
+
+        (new TranslatableScope())->apply($query, $this);
+
+        return $query->first();
+    }
+
     /**
      * @param array $translations
      * @return bool
