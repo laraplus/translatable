@@ -10,16 +10,16 @@ there is no need to create separate models for translation tables, making this p
 
 * [Quick demo](#quick-demo)
 * [Installation](#installation)
-  * [Configuration in Laravel] (#configuration-in-laravel)
-  * [Configuration outside Laravel] (#configuration-outside-laravel)
-* [Creating migrations] (#creating-migrations)
-* [Configuring models] (#configuring-models)
-* [CRUD operations] (#crud-operations)
-  * [Selecting rows] (#selecting-rows)
-  * [Inserting rows] (#inserting-rows)
-  * [Updating rows] (#updating-rows)
-  * [Deleting rows] (#deleting-rows)
-* [Translations as a relation] (#translations-as-a-relation)
+  * [Configuration in Laravel](#configuration-in-laravel)
+  * [Configuration outside Laravel](#configuration-outside-laravel)
+* [Creating migrations](#creating-migrations)
+* [Configuring models](#configuring-models)
+* [CRUD operations](#crud-operations)
+  * [Selecting rows](#selecting-rows)
+  * [Inserting rows](#inserting-rows)
+  * [Updating rows](#updating-rows)
+  * [Deleting rows](#deleting-rows)
+* [Translations as a relation](#translations-as-a-relation)
 
 ## Quick demo
 
