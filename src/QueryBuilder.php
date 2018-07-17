@@ -6,7 +6,10 @@ use InvalidArgumentException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Model as Eloquent;
+use Illuminate\Database\Query\Grammars\MySqlGrammar;
+use Illuminate\Database\Query\Grammars\PostgresGrammar;
 use Illuminate\Database\Query\Grammars\SqlServerGrammar;
+
 
 class QueryBuilder extends Builder
 {
@@ -272,7 +275,15 @@ class QueryBuilder extends Builder
      */
     public function compileIfNull($primary, $fallback, $alias = null)
     {
-        $ifNull = $this->grammar instanceof SqlServerGrammar ? 'isnull' : 'ifnull';
+        if ($this->grammar instanceof SqlServerGrammar) {
+            $ifNull = 'isnull';
+        } elseif ($this->grammar instanceof MySqlGrammar) {
+            $ifNull = 'ifnull';
+        } elseif ($this->grammar instanceof PostgresGrammar) {
+            $ifNull = 'coalesce';
+        } else {
+            throw new \Exception('Cannot compile IFNULL statement for grammar ' . get_class($this->grammar));
+        }
 
         $primary = $this->grammar->wrap($primary);
         $fallback = $this->grammar->wrap($fallback);
