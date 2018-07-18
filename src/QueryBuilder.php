@@ -7,6 +7,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Query\Grammars\MySqlGrammar;
+use Illuminate\Database\Query\Grammars\SQLiteGrammar;
 use Illuminate\Database\Query\Grammars\PostgresGrammar;
 use Illuminate\Database\Query\Grammars\SqlServerGrammar;
 
@@ -277,7 +278,7 @@ class QueryBuilder extends Builder
     {
         if ($this->grammar instanceof SqlServerGrammar) {
             $ifNull = 'isnull';
-        } elseif ($this->grammar instanceof MySqlGrammar) {
+        } elseif ($this->grammar instanceof MySqlGrammar || $this->grammar instanceof SQLiteGrammar) {
             $ifNull = 'ifnull';
         } elseif ($this->grammar instanceof PostgresGrammar) {
             $ifNull = 'coalesce';
