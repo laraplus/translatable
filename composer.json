@@ -1,5 +1,5 @@
 {
-  "name": "laraplus/translatable",
+  "name": "levgenij/translatable",
   "description": "Translatable eloquent models.",
   "keywords": ["translatable", "eloquent", "laravel", "model", "translate", "i18n"],
   "license": "MIT",
