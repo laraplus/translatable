@@ -299,6 +299,10 @@ trait Translatable
      */
     public function translatableAttributes()
     {
+        if(!isset(static::$i18nAttributes[$this->getTable()])) {
+            return [];
+        }
+
         return static::$i18nAttributes[$this->getTable()];
     }
 

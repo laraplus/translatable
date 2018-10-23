@@ -39,6 +39,7 @@ abstract class IntegrationTestCase extends TestCase
 
         $this->schema()->create('tags', function (Blueprint $table) {
             $table->increments('id');
+            $table->integer('parent_id')->unsigned()->nullable();
             $table->timestamps();
         });
 

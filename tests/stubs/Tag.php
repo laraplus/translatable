@@ -13,4 +13,9 @@ class Tag extends Model
     {
         return $this->belongsToMany(Post::class);
     }
+
+    public function children()
+    {
+        return $this->hasMany(static::class, 'parent_id', 'id');
+    }
 }

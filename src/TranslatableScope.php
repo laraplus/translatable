@@ -34,9 +34,11 @@ class TranslatableScope implements Scope
         $this->i18nTable = $model->getI18nTable();
         $this->fallback = $model->getFallbackLocale();
 
-        $this->createJoin($builder, $model);
-        $this->createWhere($builder, $model);
-        $this->createSelect($builder, $model);
+        if(!starts_with($this->table, 'laravel_reserved_')) {
+            $this->createJoin($builder, $model);
+            $this->createWhere($builder, $model);
+            $this->createSelect($builder, $model);
+        }
     }
 
     /**

@@ -300,4 +300,16 @@ class TestCRUD extends IntegrationTestCase
         $user->decrement('age');
         $this->assertEquals(20, User::first()->age);
     }
+
+    public function testHasQuery()
+    {
+        $tag1 = Tag::forceCreate(['title' => 'Tag1']);
+        $tag2 = Tag::forceCreate(['title' => 'Tag2']);
+        $tag3 = Tag::forceCreate(['title' => 'Tag2']);
+
+        $tag3->parent_id = $tag1->id;
+        $tag3->save();
+
+        $this->assertCount(1, Tag::has('children')->get());
+    }
 }
