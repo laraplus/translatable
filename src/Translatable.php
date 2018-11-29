@@ -281,6 +281,7 @@ trait Translatable
     public function translationModel()
     {
         $translation = new TranslationModel();
+		$translation->setConnection($this->getI18nConnection());
         $translation->setTable($this->getI18nTable());
         $translation->setKeyName($this->getForeignKey());
         $translation->setLocaleKey($this->getLocaleKey());
@@ -440,6 +441,16 @@ trait Translatable
         }
 
         return TranslatableConfig::withFallback();
+    }
+
+	/**
+	 * Get the i18n connection name associated with the model.
+	 *
+	 * @return string
+	 */
+	public function getI18nConnection()
+	{
+		return $this->getConnectionName();
     }
 
     /**
