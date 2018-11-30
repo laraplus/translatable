@@ -443,11 +443,11 @@ trait Translatable
         return TranslatableConfig::withFallback();
     }
 
-	/**
-	 * Get the i18n connection name associated with the model.
-	 *
-	 * @return string
-	 */
+    /**
+     * Get the i18n connection name associated with the model.
+     *
+     * @return string
+     */
     public function getI18nConnection()
     {
         return $this->getConnectionName();
