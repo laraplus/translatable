@@ -281,7 +281,7 @@ trait Translatable
     public function translationModel()
     {
         $translation = new TranslationModel();
-		$translation->setConnection($this->getI18nConnection());
+        $translation->setConnection($this->getI18nConnection());
         $translation->setTable($this->getI18nTable());
         $translation->setKeyName($this->getForeignKey());
         $translation->setLocaleKey($this->getLocaleKey());
@@ -448,9 +448,9 @@ trait Translatable
 	 *
 	 * @return string
 	 */
-	public function getI18nConnection()
-	{
-		return $this->getConnectionName();
+    public function getI18nConnection()
+    {
+        return $this->getConnectionName();
     }
 
     /**
