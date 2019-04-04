@@ -233,7 +233,11 @@ trait Translatable
      */
     public function translate($locale)
     {
-        $found = $this->translations->where($this->getLocaleKey(), $locale)->first();
+        if (app()->getLocale() == $locale) {
+            $found = $this;
+        } else {
+            $found = $this->translations->where($this->getLocaleKey(), $locale)->first();
+        }
 
         if (!$found && $this->shouldFallback($locale)) {
             return $this->translate($this->getFallbackLocale());
