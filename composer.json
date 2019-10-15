@@ -27,5 +27,8 @@
       "tests/TestCase.php",
       "tests/IntegrationTestCase.php"
     ]
+  },
+  "suggest": {
+    "spletna-postaja/translatable": "laraplus/translatable is deprecated and is not maintained any more.  Please use spletnapostaja/translatable instead."
   }
 }
